@@ -1,0 +1,7 @@
+---
+- name: create your initial IdP configuration
+  shell: docker run -i -v /tmp:/ext-mount --rm cscfi/shibboleth-idp init-idp.sh; cp -r /tmp/customized-shibboleth-idp $(pwd)
+  args:
+    creates: customized-shibboleth-idp/
+
+- include: cedugain.yml

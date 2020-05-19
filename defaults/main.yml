@@ -1,0 +1,4 @@
+---
+# defaults file for ansible-role-shibboleth-idp-configurator
+shibbolethidp_idp_home: "{{ inventory_dir }}/customized-shibboleth-idp"
+shibbolethidp_edugaincrt: "https://wiki.eduuni.fi/download/attachments/27297747/haka-edugain-sign.csc.fi.2017.pem"

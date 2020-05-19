@@ -1,0 +1,8 @@
+galaxy_info:
+  author: Sami Silén
+  description: Shibboleth-IdP Configurator
+  company: CSC
+
+  license: MIT
+
+  min_ansible_version: 2.9
