@@ -5,3 +5,4 @@
     creates: customized-shibboleth-idp/
 
 - include: cedugain.yml
+- include: chaka.yml
