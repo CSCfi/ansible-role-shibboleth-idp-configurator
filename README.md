@@ -1,22 +1,35 @@
-Role Name
+Shibboleth IdP Configurator
 =========
 
-A brief description of the role goes here.
+This role is configurator for Shibboleth IdP. This role can perform modifications for already existing installations on servers or optionally just create needed configuration which can then copied to server or be mounted on containers.
 
 Requirements
 ------------
 
-Any pre-requisites that may not be covered by Ansible itself or the role should be mentioned here. For instance, if the role uses the EC2 module, it may be a good idea to mention in this section that the boto package is required.
+* Docker (Optional: If creating configurations tree)
+  * cscfi/shibboleth-idp
+* Ansible 2.9 ->
+* Python 3 ->, python-lxml
 
 Role Variables
 --------------
 
-A description of the settable variables for this role should go here, including any variables that are in defaults/main.yml, vars/main.yml, and any variables that can/should be set via parameters to the role. Any variables that are read from other roles and/or the global scope (ie. hostvars, group vars, etc.) should be mentioned here as well.
+This role can be called with multiple tags, where each tags means some dedicated configuration. Each configuration is own separate task file which makes it's easier follow what each configuration needs to do. Defaults and configurable variables for each tasks can be found from defaults/main.yml
+
+* tag_haka: Add trust to Haka federation
+  * shibbolethidp_hakacrt:
+* tag_edugain: Add trust to Edugain
+  * shibbolethidp_edugaincrt: 
+* tag_hakatest Add trust to Haka-test federation
+  * shibbolethidp_hakatestcrt:
+* tag_oidc: Configure oidc support
+
+If you want to overwrite default variables you can do it by overwriting those in the group_vars or in the playbook accordingly.
 
 Dependencies
 ------------
 
-A list of other roles hosted on Galaxy should go here, plus any details in regards to parameters that may need to be set for other roles, or variables that are used from other roles.
+* Docker (Optional)
 
 Example Playbook
 ----------------
@@ -30,9 +43,8 @@ Including an example of how to use your role (for instance, with variables passe
 License
 -------
 
-BSD
+MIT
 
 Author Information
 ------------------
-
-An optional section for the role authors to include contact information, or a website (HTML is not allowed).
+sami.silen@csc.fi
