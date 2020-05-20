@@ -3,6 +3,7 @@
   shell: docker run -i -v /tmp:/ext-mount --rm cscfi/shibboleth-idp init-idp.sh; cp -r /tmp/customized-shibboleth-idp $(pwd)
   args:
     creates: customized-shibboleth-idp/
+  when: inventory_hostname == "localhost"
 
 - name: Main | Configurables
   include: tags/{{ item }}.yml

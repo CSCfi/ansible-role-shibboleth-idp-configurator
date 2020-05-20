@@ -1,0 +1,39 @@
+# handlers file for shibboleth-idp
+- name: systemctl daemon-reload
+  command: systemctl daemon-reload
+
+- name: restart shibboleth-idp
+  service: name=shibboleth-idp state=restarted
+
+- name: rebuild shibboleth-idp
+  shell: "source /etc/default/shibboleth-idp && {{ shibbolethidp_idp_home }}/bin/build.sh -Didp.target.dir={{ shibbolethidp_idp_home }}"
+  args:
+    executable: /bin/bash
+  notify: restart shibboleth-idp
+
+- name: generate hashlinks
+  shell: "make"
+  args:
+    chdir: "{{ shibbolethidp_idp_home }}/metadata/dyn"
+    executable: /bin/bash
+  notify: restart shibboleth-idp
+
+- name: reown shibboleth-idp
+  file: path={{ shibbolethidp_idp_home }}/{{ shibbolethidp_item.path }} owner={{ shibbolethidp_item.owner }} group={{ shibbolethidp_item.group }} mode={{ shibbolethidp_item.mode }} recurse=yes
+  loop:
+    - { path: '.', owner: 'jetty', group: 'jetty', mode: '0550' }
+    - { path: 'logs', owner: 'jetty', group: 'jetty', mode: '0750' }
+    - { path: 'jetty-base/logs', owner: 'jetty', group: 'jetty', mode: '0750' }
+    - { path: 'metadata', owner: 'jetty', group: 'jetty', mode: '0750' }
+  loop_control:
+    loop_var: shibbolethidp_item
+  notify: rebuild shibboleth-idp
+
+- name: reown privatekeys-idp
+  include_tasks: tasks/shibbolethidp_certsownership.yml
+
+- name: reload-service shibboleth-idp
+  shell: "source /etc/default/shibboleth-idp && {{ shibbolethidp_idp_home }}/bin/reload-service.sh -id shibboleth.ClientInformationResolverService"
+  args:
+    executable: /bin/bash
+  when: update is defined

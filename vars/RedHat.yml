@@ -1,0 +1,5 @@
+---
+shibbolethidp_packages:
+  - java-11-openjdk-headless
+
+shibbolethidp_java_home: /etc/alternatives/jre_11

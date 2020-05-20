@@ -1,0 +1,5 @@
+[Path]
+PathModified=/etc/alternatives/jre/lib
+
+[Install]
+WantedBy=multi-user.target

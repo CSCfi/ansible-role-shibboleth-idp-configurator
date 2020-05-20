@@ -1,0 +1,25 @@
+---
+shibbolethidp_jars:
+  - name: mariadb-java-client
+    url: https://repo1.maven.org/maven2/org/mariadb/jdbc/mariadb-java-client/2.5.4/mariadb-java-client-2.5.4.jar
+    dst: "{{ shibbolethidp_idp_home }}/edit-webapp/WEB-INF/lib/"
+#  - name: Postresql client
+#    url: https://repo1.maven.org/maven2/org/postgresql/postgresql/42.2.9/postgresql-42.2.9.jar
+#    dst: "{{ shibbolethidp_idp_home }}/edit-webapp/WEB-INF/lib/"
+#  - name: commons-dbcp2
+#    url: https://repo1.maven.org/maven2/org/apache/commons/commons-dbcp2/2.7.0/commons-dbcp2-2.7.0.jar
+#    dst: "{{ shibbolethidp_idp_home }}/edit-webapp/WEB-INF/lib/"
+#  - name: commons-pool2
+#    url: https://repo1.maven.org/maven2/org/apache/commons/commons-pool2/2.8.0/commons-pool2-2.8.0.jar
+#    dst: "{{ shibbolethidp_idp_home }}/edit-webapp/WEB-INF/lib/"
+
+jetty_jars:
+  - name: logback-classic
+    url: https://repo1.maven.org/maven2/ch/qos/logback/logback-classic/1.2.3/logback-classic-1.2.3.jar
+    dst: "{{ shibbolethidp_jetty_base }}/lib/logging/"
+  - name: logback-core
+    url: https://repo1.maven.org/maven2/ch/qos/logback/logback-core/1.2.3/logback-core-1.2.3.jar
+    dst: "{{ shibbolethidp_jetty_base }}/lib/logging/"
+  - name: logback-access
+    url: https://repo1.maven.org/maven2/ch/qos/logback/logback-access/1.2.3/logback-access-1.2.3.jar
+    dst: "{{ shibbolethidp_jetty_base }}/lib/logging/"

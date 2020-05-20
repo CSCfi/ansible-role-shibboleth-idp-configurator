@@ -1,0 +1,175 @@
+---
+# tasks file for shibboleth-idp
+- name: Install | Initialize | {{ shibbolethidp_fqdn }}
+  include_vars: "{{ install }}"
+  with_first_found:
+    - "{{ ansible_os_family }}.yml"
+    - "default.yml"
+  loop_control:
+    loop_var: install
+  when: shibbolethidp_packages is not defined
+
+- name: Install | Packages
+  package: name={{ shibbolethidp_packages }} state=installed
+
+- name: Install | Download | Shibboleth-IdP {{ shibbolethidp_version }}
+  unarchive:
+    src: https://shibboleth.net/downloads/identity-provider/{{ shibbolethidp_version }}/shibboleth-identity-provider-{{ shibbolethidp_version }}.tar.gz
+    dest: "{{ shibbolethidp_dst_dir }}"
+    remote_src: True
+  notify: reown shibboleth-idp
+
+- name: Install | Template | Directories | Create
+  file:
+    state: directory
+    dest: "/{{ item_templates.path }}"
+  with_filetree: "/templates"
+  when: item_templates.state == 'directory'
+  loop_control:
+    loop_var: item_templates
+
+- name: Install | Template | Files | copy
+  template:
+    src: "{{ item_templates.src }}"
+    dest: "/{{ item_templates.path }}"
+    backup: yes
+    force: yes
+  with_filetree: "/templates"
+  when: item_templates.state == 'file'
+  loop_control:
+    loop_var: item_templates
+
+- name: Main | Install
+  shell: "source /etc/default/shibboleth-idp && {{ shibbolethidp_dst_dir }}/shibboleth-identity-provider-{{ shibbolethidp_version }}/bin/install.sh \
+  -Didp.src.dir={{ shibbolethidp_dst_dir }}/shibboleth-identity-provider-{{ shibbolethidp_version }} \
+  -Didp.target.dir={{ shibbolethidp_idp_home }} \
+  -Didp.scope={{ shibbolethidp_scope }} \
+  -Didp.host.name={{ shibbolethidp_fqdn }} \
+  -Didp.sealer.password={{ shibbolethidp_keystore_password }} \
+  -Didp.keystore.password={{ shibbolethidp_keystore_password }} \
+  -Didp.entityID={{ shibbolethidp_entityid }} \
+  -Didp.noprompt=true"
+#  -Didp.jetty.config=true"
+  args:
+    executable: /bin/bash
+    creates: "{{ shibbolethidp_idp_home }}"
+
+- include_vars: "Extra.yml"
+
+- name: Main | jetty_base logs | directory | create
+  file: path={{ shibbolethidp_jetty_base }}/logs state=directory mode=0755 owner=jetty group=jetty
+
+- name: Main | jetty_base | directories | create
+  file: path={{ jars.dst }} state=directory owner=jetty group=jetty mode=0755
+  with_items:
+    - "{{ jetty_jars }}"
+    - "{{ shibbolethidp_jars }}"
+  loop_control:
+    loop_var: jars
+  notify: reown shibboleth-idp
+
+- name: Main | jetty_base | create | system.d
+  shell: . /etc/default/shibboleth-idp && java -jar $JETTY_HOME/start.jar --create-startd
+  args:
+    chdir: "{{ shibbolethidp_jetty_base }}"
+    creates: "{{ shibbolethidp_jetty_base }}/start.d"
+
+- name: Main | jetty_base | configure | modules | {{ shibbolethidp_jetty_modules }}
+  shell: . /etc/default/shibboleth-idp && java -jar $JETTY_HOME/start.jar --add-to-start="{{ shibbolethidp_jetty_modules | join(',') }}"
+  args:
+    chdir: "{{ shibbolethidp_jetty_base }}"
+    creates: "{{ shibbolethidp_jetty_base }}/start.d/ssl.ini"
+
+- name: Main | Jetty | Configure
+  lineinfile: dest={{ item.dst }} regexp="^#?\s*({{ item.name }}\s*=)" backrefs=yes  line="\\1 {{ item.value }}"
+  with_items: "{{ jetty_configurator }}"
+
+- name: Main | download | Extra
+  get_url:
+    url: "{{ item.url }}"
+    dest: "{{ item.dst }}"
+    mode: 0644
+  with_items:
+    - "{{ jetty_jars }}"
+    - "{{ shibbolethidp_jars }}"
+  notify: reown shibboleth-idp
+
+- name: Main | Templates | copy
+  template: src={{ item.src }} dest={{ item.dst }}
+  with_items:
+    - { src: idp.xml, dst: "{{ shibbolethidp_jetty_base }}/webapps/idp.xml" }
+    - { src: attribute-resolver.xml, dst: "{{ shibbolethidp_idp_home }}/conf/attribute-resolver-haka.xml" }
+    - { src: attribute-filter.xml, dst: "{{ shibbolethidp_idp_home }}/conf/attribute-filter-haka.xml" }
+    - { src: tweak-ssl.xml, dst: "{{ shibbolethidp_jetty_base }}/etc/tweak-ssl.xml" }
+  notify: reown shibboleth-idp
+
+#    - { src: jetty-requestlog.xml, dst: "{{ shibbolethidp_jetty_base }}/etc" }
+#    - { src: logback-access.xml, dst: "{{ shibbolethidp_jetty_base }}/resources" }
+#    - { src: logback.xml, dst: "{{ shibbolethidp_jetty_base }}/resources" }
+
+- name: Main | Copy | jetty-ssl-context.xml
+  copy: src={{ item.src }} dest={{ item.dst }} remote_src=yes
+  with_items:
+    - { src: "{{ shibbolethidp_jetty_home }}/etc/jetty-ssl-context.xml", dst: "{{ shibbolethidp_jetty_base }}/etc/" }
+
+- name: Main | Jetty | SSL | enable | tweak-ssl.xml
+  lineinfile:
+    dest: "{{ shibbolethidp_jetty_base }}/start.d/https.ini"
+    regexp: '^etc'
+    insertafter: '--module=https'
+    line: 'etc/tweak-ssl.xml'
+
+- name: Main | Symlink | create | logs
+  file:
+    src="{{ shibbolethidp_idp_home }}/logs"
+    dest=/var/log/shibboleth-idp
+    state=link
+
+- name: Main | Symlink | create | logs
+  file:
+    src="{{ shibbolethidp_idp_home }}/jetty-base/logs"
+    dest=/var/log/jetty
+    state=link
+    force=yes
+
+- name: Main | Configure | authn/password-authn-config.xml | Username | Lowercase
+  xml:
+    xpath: "{{ item.xpath }}"
+    attribute: "{{ item.attribute }}"
+    value: "{{ item.value }}"
+    ensure: "{{ item.ensure }}"
+    file: /opt/shibboleth-idp/conf/authn/password-authn-config.xml
+    namespaces:
+      x: http://www.springframework.org/schema/beans
+      p: http://www.springframework.org/schema/p
+      util: http://www.springframework.org/schema/util
+  with_items:
+    - { xpath: "//util:constant[@id='shibboleth.authn.Password.Lowercase']", attribute: "static-field", value: "java.lang.Boolean.TRUE", ensure: present }
+  notify: restart shibboleth-idp
+
+- name: Main | Enable | Service | shibboleth-idp 
+  service: name="{{ item }}" enabled=yes state=started
+  with_items:
+    - shibboleth-idp
+    - shibboleth-idp-watcher.path
+
+- name: Main | Configure | Debug | shibbolethidp_debug = {{ shibbolethidp_debug }}
+  xml:
+    xpath: "//configuration/variable[@name='idp.loglevel.idp']"
+    ensure: present
+    attribute: value
+    value: "DEBUG"
+    file: "{{ shibbolethidp_idp_home }}/conf/logback.xml"
+  when: shibbolethidp_debug is defined and shibbolethidp_debug == true
+
+- name: Main | Configure | Debug | shibbolethidp_debug = {{ shibbolethidp_debug }}
+  xml:
+    xpath: "//configuration/logger[@name='fi.mpass' and @level='debug']"
+    ensure: present
+    file: "{{ shibbolethidp_idp_home }}/conf/logback.xml"
+  when: shibbolethidp_debug is defined and shibbolethidp_debug == true
+
+- name: Main | Configurables 
+  include: shibbolethidp_{{ item }}.yml
+  with_items: "{{ configurables }}"
+  when: configurables is defined and configurables!=""
