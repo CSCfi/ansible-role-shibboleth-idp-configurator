@@ -6,5 +6,5 @@
 
 - name: Main | Configurables
   include: tags/{{ item }}.yml
-  with_items: "{{ tags }}"
-  when: tags defined and tags!=""
+  with_items: "{{ confs }}"
+  when: (confs is defined) and (confs|length > 0)

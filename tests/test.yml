@@ -3,7 +3,7 @@
   connection: local 
 
   vars:
-    ansible_python_interpreter: /usr/bin/python3
+#    ansible_python_interpreter: /usr/bin/python3
 
   roles:
-    - { role: ansible-role-shibboleth-idp-configurator, tags: ['edugain','haka'] }
+    - { role: ansible-role-shibboleth-idp-configurator, confs: ['edugain','haka','hakatest'] }

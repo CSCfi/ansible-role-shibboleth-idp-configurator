@@ -1,8 +1,8 @@
-- get_url: url="{{ shibbolethidp_hakacrt }}" dest="{{ shibbolethidp_idp_home }}/credentials/{{ shibbolethidp_hakacrt | basename }}" mode=0755
+- get_url: url="{{ shibbolethidp_hakatestcrt }}" dest="{{ shibbolethidp_idp_home }}/credentials/{{ shibbolethidp_hakatestcrt | basename }}" mode=0755
 
 - xml:
     file: "{{ shibbolethidp_idp_home }}/conf/metadata-providers.xml"
-    xpath: /x:MetadataProvider/x:MetadataProvider[@id="HTTPHakaMetadataProvider"]
+    xpath: /x:MetadataProvider/x:MetadataProvider[@id="HTTPHakatestMetadataProvider"]
     namespaces:
       x: "urn:mace:shibboleth:2.0:metadata"
     state: absent
@@ -16,17 +16,17 @@
       xsi: "http://www.w3.org/2001/XMLSchema-instance"
     add_children:
       - MetadataProvider:
-          id: HTTPHakaMetadata
+          id: HTTPHakatestMetadata
           refreshDelayFactor: "0.5"
           maxRefreshDelay: PT2H
           httpCaching: memory
           "{http://www.w3.org/2001/XMLSchema-instance}type": FileBackedHTTPMetadataProvider
-          backingFile: "%{idp.home}/metadata/haka-metadata.xml"
-          metadataURL: "https://haka.funet.fi/metadata/haka-metadata.xml"
+          backingFile: "%{idp.home}/metadata/haka_test_metadata_signed.xml"
+          metadataURL: "https://haka.funet.fi/metadata/haka_test_metadata_signed.xml"
           _:
             - MetadataFilter:
                 "{http://www.w3.org/2001/XMLSchema-instance}type": SignatureValidation
-                certificateFile: "%{idp.home}/credentials/{{ shibbolethidp_hakacrt | basename }}"
+                certificateFile: "%{idp.home}/credentials/{{ shibbolethidp_hakatestcrt | basename }}"
             - MetadataFilter:
                 "{http://www.w3.org/2001/XMLSchema-instance}type": EntityRoleWhiteList
                 _:
