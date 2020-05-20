@@ -22,7 +22,6 @@
           id: HTTPHakaMetadata
           refreshDelayFactor: "0.5"
           maxRefreshDelay: PT2H
-          httpCaching: memory
           "{http://www.w3.org/2001/XMLSchema-instance}type": FileBackedHTTPMetadataProvider
           backingFile: "%{idp.home}/metadata/haka-metadata.xml"
           metadataURL: "https://haka.funet.fi/metadata/haka-metadata.xml"
