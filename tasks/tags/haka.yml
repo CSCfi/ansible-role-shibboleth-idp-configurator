@@ -1,13 +1,16 @@
-- get_url: url="{{ shibbolethidp_hakacrt }}" dest="{{ shibbolethidp_idp_home }}/credentials/{{ shibbolethidp_hakacrt | basename }}" mode=0755
+- name: Configure | {{ item }} | Get | Certificate | {{ shibbolethidp_hakacrt | basename }}
+  get_url: url="{{ shibbolethidp_hakacrt }}" dest="{{ shibbolethidp_idp_home }}/credentials/{{ shibbolethidp_hakacrt | basename }}" mode=0755
 
-- xml:
+- name: Configure | {{ item }} | Del | MetadataProvider[@id="HTTPHakaMetadataProvider"] < conf/metadata-providers.xml
+  xml:
     file: "{{ shibbolethidp_idp_home }}/conf/metadata-providers.xml"
     xpath: /x:MetadataProvider/x:MetadataProvider[@id="HTTPHakaMetadataProvider"]
     namespaces:
       x: "urn:mace:shibboleth:2.0:metadata"
     state: absent
 
-- xml:
+- name: Configure | {{ item }} | Add | MetadataProvider[@id="HTTPHakaMetadataProvider"] > conf/metadata-providers.xml
+  xml:
     file: "{{ shibbolethidp_idp_home }}/conf/metadata-providers.xml"
     xpath: /x:MetadataProvider
     pretty_print: yes
