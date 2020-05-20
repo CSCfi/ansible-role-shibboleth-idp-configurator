@@ -25,9 +25,10 @@ install:
 script:
   # Basic role syntax check
   - ansible-playbook tests/test.yml -i tests/inventory --syntax-check
-
   - ansible-playbook tests/test.yml -i tests/inventory
 
+  # Build docker with new configurations
+  - cd tests
   - docker build --tag="cscfi/shibboleth-idp-test:latest" .
   - docker run --name="test" cscfi/shibboleth-idp-test
 
