@@ -28,5 +28,8 @@ script:
 
   - ansible-playbook tests/test.yml -i tests/inventory
 
+  - docker build --tag="cscfi/shibboleth-idp-test:latest" .
+  - docker run --name="test" cscfi/shibboleth-idp-test
+
 notifications:
   webhooks: https://galaxy.ansible.com/api/v1/notifications/
