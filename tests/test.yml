@@ -6,4 +6,4 @@
     ansible_python_interpreter: /usr/bin/python3
 
   roles:
-    - ansible-role-shibboleth-idp-configurator
+    - ansible-role-shibboleth-idp-configurator, tags: ['edugain','haka']

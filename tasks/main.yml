@@ -4,5 +4,7 @@
   args:
     creates: customized-shibboleth-idp/
 
-- include: cedugain.yml
-- include: chaka.yml
+- name: Main | Configurables
+  include: tags/{{ item }}.yml
+  with_items: "{{ tags }}"
+  when: tags defined and tags!=""
