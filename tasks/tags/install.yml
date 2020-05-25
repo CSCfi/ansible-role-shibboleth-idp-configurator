@@ -94,24 +94,6 @@
     - "{{ shibbolethidp_jars }}"
   notify: reown shibboleth-idp
 
-- name: Main | Templates | copy
-  template: src={{ item.src }} dest={{ item.dst }}
-  with_items:
-    - { src: idp.xml, dst: "{{ shibbolethidp_jetty_base }}/webapps/idp.xml" }
-    - { src: attribute-resolver.xml, dst: "{{ shibbolethidp_idp_home }}/conf/attribute-resolver-haka.xml" }
-    - { src: attribute-filter.xml, dst: "{{ shibbolethidp_idp_home }}/conf/attribute-filter-haka.xml" }
-    - { src: tweak-ssl.xml, dst: "{{ shibbolethidp_jetty_base }}/etc/tweak-ssl.xml" }
-  notify: reown shibboleth-idp
-
-#    - { src: jetty-requestlog.xml, dst: "{{ shibbolethidp_jetty_base }}/etc" }
-#    - { src: logback-access.xml, dst: "{{ shibbolethidp_jetty_base }}/resources" }
-#    - { src: logback.xml, dst: "{{ shibbolethidp_jetty_base }}/resources" }
-
-- name: Main | Copy | jetty-ssl-context.xml
-  copy: src={{ item.src }} dest={{ item.dst }} remote_src=yes
-  with_items:
-    - { src: "{{ shibbolethidp_jetty_home }}/etc/jetty-ssl-context.xml", dst: "{{ shibbolethidp_jetty_base }}/etc/" }
-
 - name: Main | Jetty | SSL | enable | tweak-ssl.xml
   lineinfile:
     dest: "{{ shibbolethidp_jetty_base }}/start.d/https.ini"
@@ -152,24 +134,3 @@
   with_items:
     - shibboleth-idp
     - shibboleth-idp-watcher.path
-
-- name: Main | Configure | Debug | shibbolethidp_debug = {{ shibbolethidp_debug }}
-  xml:
-    xpath: "//configuration/variable[@name='idp.loglevel.idp']"
-    ensure: present
-    attribute: value
-    value: "DEBUG"
-    file: "{{ shibbolethidp_idp_home }}/conf/logback.xml"
-  when: shibbolethidp_debug is defined and shibbolethidp_debug == true
-
-- name: Main | Configure | Debug | shibbolethidp_debug = {{ shibbolethidp_debug }}
-  xml:
-    xpath: "//configuration/logger[@name='fi.mpass' and @level='debug']"
-    ensure: present
-    file: "{{ shibbolethidp_idp_home }}/conf/logback.xml"
-  when: shibbolethidp_debug is defined and shibbolethidp_debug == true
-
-- name: Main | Configurables 
-  include: shibbolethidp_{{ item }}.yml
-  with_items: "{{ configurables }}"
-  when: configurables is defined and configurables!=""

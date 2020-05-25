@@ -8,4 +8,4 @@
 - name: Main | Configurables
   include: tags/{{ item }}.yml
   with_items: "{{ confs }}"
-  when: (confs is defined) and (confs|length > 0)
+  when: (confs is defined) and (confs|length > 0) and ((item!="install" and inventory_hostname=="localhost") or (inventory_hostname!="localhost"))

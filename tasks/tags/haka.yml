@@ -4,12 +4,12 @@
 - name: Configure | {{ item }} | Del | MetadataProvider[@id="HTTPHakaMetadataProvider"] < conf/metadata-providers.xml
   xml:
     file: "{{ shibbolethidp_idp_home }}/conf/metadata-providers.xml"
-    xpath: /x:MetadataProvider/x:MetadataProvider[@id="HTTPHakaMetadataProvider"]
+    xpath: /x:MetadataProvider/x:MetadataProvider[@id="HTTPHakaMetadata"]
     namespaces:
       x: "urn:mace:shibboleth:2.0:metadata"
     state: absent
 
-- name: Configure | {{ item }} | Add | MetadataProvider[@id="HTTPHakaMetadataProvider"] > conf/metadata-providers.xml
+- name: Configure | {{ item }} | Add | MetadataProvider[@id="HTTPHakaMetadata"] > conf/metadata-providers.xml
   xml:
     file: "{{ shibbolethidp_idp_home }}/conf/metadata-providers.xml"
     xpath: /x:MetadataProvider

@@ -23,3 +23,11 @@ jetty_jars:
   - name: logback-access
     url: https://repo1.maven.org/maven2/ch/qos/logback/logback-access/1.2.3/logback-access-1.2.3.jar
     dst: "{{ shibbolethidp_jetty_base }}/lib/logging/"
+
+jetty_configurator:
+  - name: jetty.ssl.port
+    dst: "{{ shibbolethidp_jetty_base }}/start.d/ssl.ini"
+    value: "{{ shibbolethidp_jetty_secure_port }}"
+  - name: jetty.httpConfig.sendServerVersion
+    dst: "{{ shibbolethidp_jetty_base }}/start.d/server.ini"
+    value: false
