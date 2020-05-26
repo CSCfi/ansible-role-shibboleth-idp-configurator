@@ -1,0 +1,130 @@
+- name: Configure | {{ item }} | Del | AttributeDefinition[@id="proxy-eppn"] < conf/attribute-resolver.xml
+  xml:
+    file: "{{ shibbolethidp_idp_home }}/conf/attribute-resolver.xml"
+    xpath: /x:AttributeResolver/x:AttributeDefinition[@id="proxy-eppn"]
+    namespaces:
+      x: "urn:mace:shibboleth:2.0:resolver"
+    state: absent
+
+- name: Configure | {{ item }} | Add | AttributeDefinition[@id="proxy-eppn"] > conf/attribute-resolver.xml
+  xml:
+    file: "{{ shibbolethidp_idp_home }}/conf/attribute-resolver.xml"
+    xpath: /x:AttributeResolver
+    pretty_print: yes
+    namespaces: &namespaces
+      x: "urn:mace:shibboleth:2.0:resolver"
+      xsi: "http://www.w3.org/2001/XMLSchema-instance"
+    add_children:
+      - AttributeDefinition:
+          id: proxy-eppn
+          "{http://www.w3.org/2001/XMLSchema-instance}type": SubjectDerivedAttribute
+          forCanonicalNames: true
+          principalAttributeName: eduPersonPrincipalName
+
+- name: Configure | {{ item }} | Del | DataConnector[@id="passthroughAttributes"] < conf/attribute-resolver.xml
+  xml:
+    file: "{{ shibbolethidp_idp_home }}/conf/attribute-resolver.xml"
+    xpath: /x:AttributeResolver/x:DataConnector[@id="passthroughAttributes"]
+    namespaces:
+      x: "urn:mace:shibboleth:2.0:resolver"
+    state: absent
+
+- name: Configure | {{ item }} | Add | DataConnector[@id="passthroughAttributes"] > conf/attribute-resolver.xml
+  xml:
+    file: "{{ shibbolethidp_idp_home }}/conf/attribute-resolver.xml"
+    xpath: /x:AttributeResolver
+    pretty_print: yes
+    insertAfter: yes
+    namespaces: &namespaces
+      x: "urn:mace:shibboleth:2.0:resolver"
+      xsi: "http://www.w3.org/2001/XMLSchema-instance"
+    add_children:
+      - AttributeDefinition:
+          id: passthroughAttributes
+          "{http://www.w3.org/2001/XMLSchema-instance}type": Subject
+          exportAllAttributes: true
+
+- name: Configure | {{ item }} | Del | util:list[@id="shibboleth.c14n.attribute.AttributesToResolver"] < conf/c14/attribute-sourced-subject-c14n-config.xml
+  xml:
+    file: "{{ shibbolethidp_idp_home }}/conf/c14/attribute-sourced-subject-c14n-config.xml"
+    xpath: /x:beans/util:list[@id="{{ item }}"]
+    namespaces:
+      x: "http://www.springframework.org/schema/beans"
+      util: "http://www.springframework.org/schema/util"
+    state: absent
+  with_items:
+    - shibboleth.c14n.attribute.AttributesToResolver
+    - shibboleth.c14n.attribute.AttributeSourceIds
+
+- name: Configure | {{ item }} | Add | util:list[@id="shibboleth.c14n.attribute.AttributesToResolver"] > conf/c14/attribute-sourced-subject-c14n-config.xml
+  xml:
+    file: "{{ shibbolethidp_idp_home }}/conf/c14/attribute-sourced-subject-c14n-config.xml"
+    xpath: /x:AttributeResolver
+    pretty_print: yes
+    insertAfter: yes
+    namespaces: &namespaces
+      x: "http://www.springframework.org/schema/beans"
+      util: "http://www.springframework.org/schema/util"
+    add_children:
+      - "{http://www.springframework.org/schema/util}"list:
+          id: "{{ item }}"
+          "{http://www.w3.org/2001/XMLSchema-instance}type": Subject
+          _:
+            - value: proxy-eppn
+  with_items:
+     - shibboleth.c14n.attribute.AttributeSourceIds
+     - shibboleth.c14n.attribute.AttributesToResolver
+
+- name: Configure | {{ item }} | Del | bean[@id="shibboleth.PostLoginSubjectCanonicalizationFlow"] < conf/c14/subject-c14n.xml
+  xml:
+    file: "{{ shibbolethidp_idp_home }}/conf/c14/subject-c14n.xml"
+    xpath: /x:beans/x:bean[@id="shibboleth.PostLoginSubjectCanonicalizationFlow"]
+    namespaces:
+      x: "http://www.springframework.org/schema/beans"
+    state: absent
+  with_items:
+    - shibboleth.PostLoginSubjectCanonicalizationFlow
+
+- name: Configure | {{ item }} | Add | bean[@id="shibboleth.PostLoginSubjectCanonicalizationFlow"] > conf/c14/subject-c14n.xml
+  xml:
+    file: "{{ shibbolethidp_idp_home }}/conf/c14/subject-c14n.xml"
+    xpath: /x:beans
+    pretty_print: yes
+    insertAfter: yes
+    namespaces: &namespaces
+      x: "http://www.springframework.org/schema/beans"
+    add_children:
+      - bean:
+          id: "c14n/attribute"
+          parent: shibboleth.PostLoginSubjectCanonicalizationFlow
+
+- name: Configure | {{ item }} | Del | bean[@id="authn/SAML"] < conf/authn/general-authn.xml
+  xml:
+    file: "{{ shibbolethidp_idp_home }}/conf/authn/general-authn.xml"
+    xpath: /x:beans/x:bean[@id="authn/SAML"]
+    namespaces:
+      x: "http://www.springframework.org/schema/beans"
+    state: absent
+  with_items:
+    - shibboleth.PostLoginSubjectCanonicalizationFlow
+
+- name: Configure | {{ item }} | Add | bean[@id="authn/SAML"] > conf/authn/general-authn.xml
+  xml:
+    file: "{{ shibbolethidp_idp_home }}/conf/authn/general-authn.xml"
+    xpath: /x:beans
+    pretty_print: yes
+    insertAfter: yes
+    namespaces: &namespaces
+      x: "http://www.springframework.org/schema/beans"
+      p: "http://www.springframework.org/schema/p"
+    add_children:
+      - bean:
+          id: "authn/SAML"
+          parent: shibboleth.AuthenticationFlow
+	  {http://www.springframework.org/schema/p}nonBrowserSupported: false
+          {http://www.springframework.org/schema/p}passiveAuthenticationSupported: true
+          {http://www.springframework.org/schema/p}forcedAuthenticationSupported: true
+          {http://www.springframework.org/schema/p}proxyScopingEnforced: true
+          {http://www.springframework.org/schema/p}discoveryRequired: false
+	  
+
