@@ -20,3 +20,13 @@ shibbolethidp_edugaincrt: "https://wiki.eduuni.fi/download/attachments/27297747/
 shibbolethidp_hakatestcrt: "https://wiki.eduuni.fi/download/attachments/27297785/haka_testi_2018_sha2.crt"
 ### Haka
 shibbolethidp_hakacrt: "https://wiki.eduuni.fi/download/attachments/27297775/haka-sign-v4.pem"
+
+### nameid & Database
+shibbolethidp_dbuser: "{{ vault_shibbolethidp_dbuser | default('idp') }}"
+shibbolethidp_dbpassword: "{{ vault_shibbolethidp_dbpassword | default('not_set_yet') }}"
+shibbolethidp_dbhost: "{{ vault_shibbolethidp_dbhost | default('localhost') }}"
+shibbolethidp_dbport: "{{ vault_shibbolethidp_dbport | default('3306') }}"
+shibbolethidp_dbname: "{{ vault_shibbolethidp_dbname | default('idp') }}"
+
+### OIDC
+shibbolethidp_oidcplugin_version: 2.0.0

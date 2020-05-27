@@ -1,10 +1,11 @@
+
 ---
 # tasks file for shibboleth-idp
 - name: Install | Initialize | {{ shibbolethidp_fqdn }}
   include_vars: "{{ install }}"
   with_first_found:
     - "{{ ansible_os_family }}.yml"
-    - "default.yml"
+    - "Default.yml"
   loop_control:
     loop_var: install
   when: shibbolethidp_packages is not defined
@@ -19,26 +20,6 @@
     remote_src: True
   notify: reown shibboleth-idp
 
-- name: Install | Template | Directories | Create
-  file:
-    state: directory
-    dest: "/{{ item_templates.path }}"
-  with_filetree: "/templates"
-  when: item_templates.state == 'directory'
-  loop_control:
-    loop_var: item_templates
-
-- name: Install | Template | Files | copy
-  template:
-    src: "{{ item_templates.src }}"
-    dest: "/{{ item_templates.path }}"
-    backup: yes
-    force: yes
-  with_filetree: "/templates"
-  when: item_templates.state == 'file'
-  loop_control:
-    loop_var: item_templates
-
 - name: Main | Install
   shell: "source /etc/default/shibboleth-idp && {{ shibbolethidp_dst_dir }}/shibboleth-identity-provider-{{ shibbolethidp_version }}/bin/install.sh \
   -Didp.src.dir={{ shibbolethidp_dst_dir }}/shibboleth-identity-provider-{{ shibbolethidp_version }} \
@@ -52,7 +33,27 @@
 #  -Didp.jetty.config=true"
   args:
     executable: /bin/bash
-    creates: "{{ shibbolethidp_idp_home }}"
+    creates: "{{ shibbolethidp_idp_home }}/logs"
+
+- name: Install | Template | Directories | Create
+  file:
+    state: directory
+    dest: "/{{ item_templates.path }}"
+  with_filetree: "templates/"
+  when: item_templates.state == 'directory'
+  loop_control:
+    loop_var: item_templates
+
+- name: Install | Template | Files | copy
+  template:
+    src: "{{ item_templates.src }}"
+    dest: "/{{ item_templates.path }}"
+    backup: yes
+    force: yes
+  with_filetree: "templates/"
+  when: item_templates.state == 'file'
+  loop_control:
+    loop_var: item_templates
 
 - include_vars: "Extra.yml"
 

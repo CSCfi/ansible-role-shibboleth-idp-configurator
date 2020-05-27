@@ -8,6 +8,6 @@
 
   roles:
     - role: CSCfi.jetty
-      when: inventory_hostname != 'localhost'
+      when: (inventory_hostname != 'localhost')
     - role: ansible-role-shibboleth-idp-configurator
-      confs: ['install','edugain','haka','hakatest']
+      confs: ['install','proxy','edugain','haka','hakatest']

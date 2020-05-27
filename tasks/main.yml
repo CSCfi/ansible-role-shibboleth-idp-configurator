@@ -5,7 +5,12 @@
     creates: customized-shibboleth-idp/
   when: inventory_hostname == "localhost"
 
-- name: Main | Configurables
+- include: tags/install.yml
+  when: 
+    - inventory_hostname != "localhost"
+    - '"install" in confs'
+
+- name: Main | Configurables | Rest
   include: tags/{{ item }}.yml
   with_items: "{{ confs }}"
-  when: (confs is defined) and (confs|length > 0) and ((item!="install" and inventory_hostname=="localhost") or (inventory_hostname!="localhost"))
+  when: (confs is defined) and (confs|length > 0) and (item!="install")
