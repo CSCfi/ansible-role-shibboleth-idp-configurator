@@ -4,10 +4,10 @@
 
   vars:
     # ansible_python_interpreter: /usr/bin/python3
-    shibbolethidp_fqdn: test.idp.com
+    shibbolethidp_fqdn: vm1356.kaj.pouta.csc.fi
 
   roles:
     - role: CSCfi.jetty
       when: (inventory_hostname != 'localhost')
     - role: ansible-role-shibboleth-idp-configurator
-      confs: ['install','proxy','edugain','haka','hakatest']
+      confs: ['oidc','install','proxy','hakatest']

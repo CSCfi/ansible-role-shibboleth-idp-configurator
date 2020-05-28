@@ -5,7 +5,8 @@ shibbolethidp_idp_home: "{{ inventory_dir }}/customized-shibboleth-idp"
 ### Install
 shibbolethidp_version: 4.0.0
 shibbolethidp_dst_dir: /opt
-shibbolethidp_jetty_base: /opt/shibboleth-idp/jetty-base
+shibbolethidp_jetty_base: "{{ shibbolethidp_idp_home }}/jetty-base"
+shibbolethidp_wwwroot: "{{ shibbolethidp_jetty_base }}/webapps/root"
 shibbolethidp_jetty_home: /opt/jetty
 shibbolethidp_jetty_modules: ['server','https','http','deploy','annotations','resources','console-capture','requestlog','servlets','jsp','jstl','ext','plus','ssl','setuid','security']
 shibbolethidp_jetty_secure_port: 443
