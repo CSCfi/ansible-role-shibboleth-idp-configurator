@@ -53,7 +53,7 @@
   loop_control:
     loop_var: proxyitem
   with_items:
-    - shibboleth.c14n.attribute.AttributesToResolver
+    - shibboleth.c14n.attribute.AttributesToResolve
     - shibboleth.c14n.attribute.AttributeSourceIds
 
 - name: Configure | {{ item }} | Add | util:list[@id="shibboleth.c14n.attribute.AttributesToResolver"] > conf/c14n/attribute-sourced-subject-c14n-config.xml
@@ -75,7 +75,7 @@
     loop_var: proxyitem
   with_items:
      - shibboleth.c14n.attribute.AttributeSourceIds
-     - shibboleth.c14n.attribute.AttributesToResolver
+     - shibboleth.c14n.attribute.AttributesToResolve
 
 - name: Configure | {{ item }} | Del | bean[@id="c14n/attribute"] < conf/c14n/subject-c14n.xml
   xml:
