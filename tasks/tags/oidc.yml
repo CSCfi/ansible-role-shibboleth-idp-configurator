@@ -91,9 +91,15 @@
 
 - name: Configurable | OIDC | Replace | authn-comparison.xml with authn-comparison-oidc.xml
   copy:
-    src: "{{ shibbolethidp_idp_home }}/conf/authn/authn-comparison-oidc.xml"
-    dest: "{{ shibbolethidp_idp_home }}/conf/authn/authn-comparison.xml"
+    src: "{{ shibbolethidp_idp_home }}/conf/{{ oidcitem }}-oidc.xml"
+    dest: "{{ shibbolethidp_idp_home }}/conf/{{ oidcitem }}.xml"
     remote_src: yes
+  loop_control:
+    loop_var: oidcitem
+  with_items:
+    - "authn/authn-comparison"
+    - "attribute-filter"
+    - "attribute-resolver"
 
 # - name: Configurable | OIDC | Generate and set default keys
 # ===========================================================
@@ -305,22 +311,22 @@
             - InputAttributeDefinition:
                 ref: "%{idp.oidc.subject.sourceAttribute}"
 
-- name: Configure | {{ item }} | Mod | attribute-filter.xml | Namespaces
-  xml:
-    xpath: "{{ item_oidc.xpath }}"
-    attribute: "{{ item_oidc.attribute }}"
-    value: "{{ item_oidc.value }}"
-    ensure: "{{ item_oidc.ensure }}"
-    file: "{{ shibbolethidp_idp_home }}/conf/attribute-filter.xml"
-    namespaces:
-      xmlns: urn:mace:shibboleth:2.0:afp
-      xsi: http://www.w3.org/2001/XMLSchema-instance
-  with_items:
-    - { xpath: "/xmlns:AttributeFilterPolicyGroup", attribute: "xmlns:oidcext", value: "org.geant.idpextension.oidc.attribute.encoder", ensure: present }
-    - { xpath: "/xmlns:AttributeFilterPolicyGroup", attribute: "xsi:schemaLocation", value: "urn:mace:shibboleth:2.0:resolver http://shibboleth.net/schema/idp/shibboleth-attribute-resolver.xsd org.geant.idpextension.oidc.attribute.encoder classpath:/schema/idp-oidc-extension-attribute-encoder.xsd", ensure: present }
-  loop_control:
-    loop_var: item_oidc
-  notify: restart shibboleth-idp
+#- name: Configure | {{ item }} | Mod | attribute-filter.xml | Namespaces
+#  xml:
+#    xpath: "{{ item_oidc.xpath }}"
+#    attribute: "{{ item_oidc.attribute }}"
+#    value: "{{ item_oidc.value }}"
+#    ensure: "{{ item_oidc.ensure }}"
+#    file: "{{ shibbolethidp_idp_home }}/conf/attribute-filter.xml"
+#    namespaces:
+#      xmlns: urn:mace:shibboleth:2.0:afp
+#      xsi: http://www.w3.org/2001/XMLSchema-instance
+#  with_items:
+#    - { xpath: "/xmlns:AttributeFilterPolicyGroup", attribute: "xmlns:oidcext", value: "org.geant.idpextension.oidc.attribute.encoder", ensure: present }
+#    - { xpath: "/xmlns:AttributeFilterPolicyGroup", attribute: "xsi:schemaLocation", value: "urn:mace:shibboleth:2.0:resolver http://shibboleth.net/schema/idp/shibboleth-attribute-resolver.xsd org.geant.idpextension.oidc.attribute.encoder classpath:/schema/idp-oidc-extension-attribute-encoder.xsd", ensure: present }
+#  loop_control:
+#    loop_var: item_oidc
+#  notify: restart shibboleth-idp
 
 - name: Configure | {{ item }} | Del | AttributeFilterPolicy[@id="OPENID_SCOPE"] < conf/attribute-filter.xml
   xml:
