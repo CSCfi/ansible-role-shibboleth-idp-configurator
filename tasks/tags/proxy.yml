@@ -80,19 +80,21 @@
 - name: Configure | {{ item }} | Del | bean[@id="c14n/attribute"] < conf/c14n/subject-c14n.xml
   xml:
     file: "{{ shibbolethidp_idp_home }}/conf/c14n/subject-c14n.xml"
-    xpath: /x:beans/x:bean[@id="c14n/attribute"]
+    xpath: /x:beans/util:list[@id="shibboleth.PostLoginSubjectCanonicalizationFlows"]/x:bean[@id="c14n/attribute"]
     namespaces:
       x: "http://www.springframework.org/schema/beans"
+      util: "http://www.springframework.org/schema/util"
     state: absent
 
 - name: Configure | {{ item }} | Add | bean[@id="c14n/attribute"] > conf/c14n/subject-c14n.xml
   xml:
     file: "{{ shibbolethidp_idp_home }}/conf/c14n/subject-c14n.xml"
-    xpath: /x:beans
+    xpath: /x:beans/util:list[@id="shibboleth.PostLoginSubjectCanonicalizationFlows"]
     pretty_print: yes
     #    insertafter: yes
     namespaces:
       x: "http://www.springframework.org/schema/beans"
+      util: "http://www.springframework.org/schema/util"
     add_children:
       - bean:
           id: "c14n/attribute"
