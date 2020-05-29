@@ -1,4 +1,4 @@
-- name: Configurable | OIDC | Download | Plugin v{{ shibbolethidp_oidcplugin_version }}
+- name: Configure | {{ item }} | Download | Plugin v{{ shibbolethidp_oidcplugin_version }}
   unarchive:
     extra_opts: ['--strip-components=1']
     src: "https://shibboleth.net/downloads/identity-provider/extensions/java-idp-oidc/{{ shibbolethidp_oidcplugin_version }}/idp-oidc-extension-distribution-{{ shibbolethidp_oidcplugin_version | regex_replace('[^0-9.]', '') }}-bin.tar.gz"
@@ -7,14 +7,14 @@
     creates: "{{ shibbolethidp_idp_home }}/edit-webapp/WEB-INF/lib/idp-oidc-extension-api-{{ shibbolethidp_oidcplugin_version | regex_replace('[^0-9.]', '') }}.jar"
   notify: reown shibboleth-idp
 
-- name: Configurable | OIDC | Detect | Duplicate | Plugins
+- name: Configure | {{ item }} | Detect | Duplicate | Plugins
   find:
     paths: "{{ shibbolethidp_idp_home }}/edit-webapp/WEB-INF/lib"
     patterns: "^(?!.*({{ shibbolethidp_oidcplugin_version | regex_replace('[^0-9.]', '') }})).*oidc-extension"
     use_regex: true
   register: files_to_delete
 
-- name: Configurable | OIDC | Delete | Older | Plugins
+- name: Configure | {{ oidc }}  | Delete | Older | Plugins
   file:
     path: "{{ shibbolethidp_item.path }}"
     state: absent
@@ -22,7 +22,7 @@
   loop_control:
     loop_var: shibbolethidp_item
 
-- name: Configurable | OIDC | Configure | idp-oidc.properties
+- name: Configure | {{ item }} | Configure | idp-oidc.properties
   lineinfile: dest={{ shibbolethidp_idp_home }}/conf/idp-oidc.properties regexp="^#?\s*({{ item_oidc.option }}\s*=)" backrefs=yes line="\\1 {{ item_oidc.value }}"
   with_items:
     - { option: 'idp.oidc.issuer', value: "https://{{ shibbolethidp_fqdn }}", state: present }
@@ -101,67 +101,82 @@
     - "attribute-filter"
     - "attribute-resolver"
 
-# - name: Configurable | OIDC | Generate and set default keys
-# ===========================================================
+- name: Configure | {{ item }} | Del | signind and encryptions beans < conf/credentials-oidc.xml
+  xml:
+    file: "{{ shibbolethidp_idp_home }}/conf/credentials-oidc.xml"
+    xpath: "{{ oidcitem }}"
+    namespaces:
+      x: "http://www.springframework.org/schema/beans"
+      util: "http://www.springframework.org/schema/util"
+      p: "http://www.springframework.org/schema/p"
+    state: absent
+  loop_control:
+    loop_var: oidcitem
+  with_items:
+    - '/x:beans/x:bean[@id="shibboleth.oidc.DefaultRSSigningCredential"]'
+    - '/x:beans/x:bean[@id="shibboleth.oidc.DefaultESSigningCredential"]'
+    - '/x:beans/x:bean[@id="shibboleth.oidc.DefaultRSAEncryptionCredential"]'
+    - '/x:beans/x:bean[@id="shibboleth.oidc.PEMSigningCredential"]'
+    - '/x:beans/x:bean[@id="shibboleth.oidc.PEMEncryptionCredential"]'
+    - '/x:beans/util:list[@id="shibboleth.oidc.SigningCredentials"]/x:ref[@bean="shibboleth.oidc.DefaultRSSigningCredential"]'
+    - '/x:beans/util:list[@id="shibboleth.oidc.SigningCredentials"]/x:ref[@bean="shibboleth.oidc.DefaultESSigningCredential"]'
+    - '/x:beans/util:list[@id="shibboleth.oidc.EncryptionCredentials"]/x:ref[@bean="shibboleth.oidc.DefaultRSAEncryptionCredential"]'
 
-#- name: Configurable | OIDC | Generate | Keys | RSASign (full)
-#  shell: java -jar {{ shibbolethidp_idp_home }}/bin/json-web-key-generator-0.7.jar -t RSA -s 2048 -u sig -i defaultRSASign{{lookup('pipe','date +%Y%m%d%H%M')}} -p > {{ shibbolethidp_idp_home }}/credentials/idp-signing-rs-full.jwk
-#  shell: java -jar {{ shibbolethidp_idp_home }}/bin/json-web-key-generator.jar -t RSA -s 2048 -u sig -i defaultRSA -p > {{ shibbolethidp_idp_home }}/credentials/fullRSA
-#  args:
-#    creates: "{{ shibbolethidp_idp_home }}/credentials/idp-signing-rs-full.jwk"
+- name: Configure | {{ item }} | Add | bean[@id="shibboleth.oidc.PEMSigningCredential and Encryption"] > conf/credentials-oidc.xml
+  xml:
+    file: "{{ shibbolethidp_idp_home }}/conf/credentials-oidc.xml"
+    xpath: /x:beans/util:list
+    pretty_print: yes
+    insertbefore: yes
+    namespaces:
+      x: "http://www.springframework.org/schema/beans"
+      util: "http://www.springframework.org/schema/util"
+      p: "http://www.springframework.org/schema/p"
+    add_children:
+      - bean:
+          id: shibboleth.oidc.PEMSigningCredential
+          class: net.shibboleth.idp.profile.spring.factory.BasicX509CredentialFactoryBean
+          "{http://www.springframework.org/schema/p}privateKeyResource": "%{idp.signing.key}"
+          "{http://www.springframework.org/schema/p}certificateResource": "%{idp.signing.cert}"
+          "{http://www.springframework.org/schema/p}keyNames": "testSigning"
+          "{http://www.springframework.org/schema/p}entityId-ref": "issuer"
+      - bean:
+          id: shibboleth.oidc.PEMEncryptionCredential
+          class: net.shibboleth.idp.profile.spring.factory.BasicX509CredentialFactoryBean
+          "{http://www.springframework.org/schema/p}privateKeyResource": "%{idp.encryption.key}"
+          "{http://www.springframework.org/schema/p}certificateResource": "%{idp.encryption.cert}"
+          "{http://www.springframework.org/schema/p}keyNames": "testEncryption"
+          "{http://www.springframework.org/schema/p}entityId-ref": "issuer" 
 
-#- name: Configurable | OIDC | Generate | Keys | RSASign
-#  shell: "awk '/{/{a=1} a; /}/{exit}' {{ shibbolethidp_idp_home }}/credentials/idp-signing-rs-full.jwk > {{ shibbolethidp_idp_home }}/credentials/idp-signing-rs.jwk"
-#  args:
-#    creates: "{{ shibbolethidp_idp_home }}/credentials/idp-signing-rs.jwk"
 
-#- name: Configurable | OIDC | Generate | Keys | ECSign (full)
-#  shell: java -jar {{ shibbolethidp_idp_home }}/bin/json-web-key-generator-0.7.jar -t EC -c P-256 -u sig -i defaultECSign{{lookup('pipe','date +%Y%m%d%H%M')}} -p > {{ shibbolethidp_idp_home }}/credentials/idp-signing-es-full.jwk
-#  shell: java -jar {{ shibbolethidp_idp_home }}/bin/json-web-key-generator.jar -t EC -c P-256 -u sig -i defaultEC -p > {{ shibbolethidp_idp_home }}/credentials/fullEC
-#  args:
-#    creates: "{{ shibbolethidp_idp_home }}/credentials/idp-signing-es-full.jwk"
+- name: Configure | {{ item }} | Add | bean[@id="shibboleth.oidc.PEMSigningCredential"] > conf/credentials-oidc.xml
+  xml:
+    file: "{{ shibbolethidp_idp_home }}/conf/credentials-oidc.xml"
+    xpath: /x:beans/util:list[@id="shibboleth.oidc.SigningCredentials"]
+    pretty_print: yes
+    namespaces:
+      x: "http://www.springframework.org/schema/beans"
+      util: "http://www.springframework.org/schema/util"
+      p: "http://www.springframework.org/schema/p"
+    add_children:
+      - ref:
+          bean: shibboleth.oidc.PEMSigningCredential
 
-#- name: Configurable | OIDC | Generate | Keys | ECSign
-#  shell: "awk '/{/{a=1} a; /}/{exit}' {{ shibbolethidp_idp_home }}/credentials/idp-signing-es-full.jwk > {{ shibbolethidp_idp_home }}/credentials/idp-signing-es.jwk"
-#  args:
-#    creates: "{{ shibbolethidp_idp_home }}/credentials/idp-signing-es.jwk"
-
-#- name: Configurable | OIDC | Generate | Keys | RSAEnc (full)
-#  shell: java -jar {{ shibbolethidp_idp_home }}/bin/json-web-key-generator-0.7.jar -t RSA -s 2048 -u enc -i defaultRSAEnc{{lookup('pipe','date +%Y%m%d%H%M')}} -p > {{ shibbolethidp_idp_home }}/credentials/idp-encryption-rsa-full.jwk
-#  args:
-#    creates: "{{ shibbolethidp_idp_home }}/credentials/idp-encryption-rsa-full.jwk"
-
-#- name: Configurable | OIDC | Generate | Keys | RSAenc
-#  shell: "awk '/{/{a=1} a; /}/{exit}' {{ shibbolethidp_idp_home }}/credentials/idp-encryption-rsa-full.jwk > {{ shibbolethidp_idp_home }}/credentials/idp-encryption-rsa.jwk"
-#  args:
-#    creates: "{{ shibbolethidp_idp_home }}/credentials/idp-encryption-rsa.jwk"
+- name: Configure | {{ item }} | Add | bean[@id="shibboleth.oidc.PEMEncryptionCredential"] > conf/credentials-oidc.xml
+  xml:
+    file: "{{ shibbolethidp_idp_home }}/conf/credentials-oidc.xml"
+    xpath: /x:beans/util:list[@id="shibboleth.oidc.EncryptionCredentials"]
+    pretty_print: yes
+    namespaces:
+      x: "http://www.springframework.org/schema/beans"
+      util: "http://www.springframework.org/schema/util"
+      p: "http://www.springframework.org/schema/p"
+    add_children:
+      - ref:
+          bean: shibboleth.oidc.PEMEncryptionCredential
 
 - name: Configurable | OIDC | Create | Directory | .well-known
   file: path={{ shibbolethidp_wwwroot }}/.well-known state=directory
-
-# - name: Configurable | OIDC | Create | Directory | oidc
-#  file: path={{ shibbolethidp_wwwroot }}/oidc state=directory mode=0555
-
-#- name: Configurable | OIDC | Register | Keys | public rsa
-#  shell: "grep Public -A10 {{ shibbolethidp_idp_home }}/credentials/fullRSA |awk '/{/{a=1} a; /}/{exit}'"
-#  register: result
-#- set_fact: publicrsa="{{ result.stdout | from_json }}"
-
-#- name: Configurable | OIDC | Register | Keys | public ec
-#  shell: "grep Public -A10 {{ shibbolethidp_idp_home }}/credentials/fullEC |awk '/{/{a=1} a; /}/{exit}'"      
-#  register: result    
-#- set_fact: publicec="{{ result.stdout | from_json }}"
-
-#- name: Configurable | OIDC | compine | Keys | public rsa + ec
-#  set_fact:
-#    keyset: 
-#      keys: ["{{ publicrsa }}","{{ publicec}}"]
-
-#- name: OIDC | Generate | {{ shibbolethidp_wwwroot }}/oidc/keyset.jwk
-#  copy:
-#    dest: "{{ shibbolethidp_wwwroot }}/oidc/keyset.jwk"
-#    content: "{{ keyset | to_nice_json | string }}\n"
-
 
 - name: Main | Template | Set | service_name 
   set_fact:
@@ -177,9 +192,6 @@
   template:
     src: "/tmp/openid-configuration.j2"
     dest: "{{ shibbolethidp_wwwroot }}/.well-known/openid-configuration"
-
-# - name: Prepare for first relying party
-# =======================================
 
 - name: Configure| {{ item }} | Mod | relaying-party.xml | enable oidc profile
   xml:
@@ -311,23 +323,6 @@
             - InputAttributeDefinition:
                 ref: "%{idp.oidc.subject.sourceAttribute}"
 
-#- name: Configure | {{ item }} | Mod | attribute-filter.xml | Namespaces
-#  xml:
-#    xpath: "{{ item_oidc.xpath }}"
-#    attribute: "{{ item_oidc.attribute }}"
-#    value: "{{ item_oidc.value }}"
-#    ensure: "{{ item_oidc.ensure }}"
-#    file: "{{ shibbolethidp_idp_home }}/conf/attribute-filter.xml"
-#    namespaces:
-#      xmlns: urn:mace:shibboleth:2.0:afp
-#      xsi: http://www.w3.org/2001/XMLSchema-instance
-#  with_items:
-#    - { xpath: "/xmlns:AttributeFilterPolicyGroup", attribute: "xmlns:oidcext", value: "org.geant.idpextension.oidc.attribute.encoder", ensure: present }
-#    - { xpath: "/xmlns:AttributeFilterPolicyGroup", attribute: "xsi:schemaLocation", value: "urn:mace:shibboleth:2.0:resolver http://shibboleth.net/schema/idp/shibboleth-attribute-resolver.xsd org.geant.idpextension.oidc.attribute.encoder classpath:/schema/idp-oidc-extension-attribute-encoder.xsd", ensure: present }
-#  loop_control:
-#    loop_var: item_oidc
-#  notify: restart shibboleth-idp
-
 - name: Configure | {{ item }} | Del | AttributeFilterPolicy[@id="OPENID_SCOPE"] < conf/attribute-filter.xml
   xml:
     file: "{{ shibbolethidp_idp_home }}/conf/attribute-filter.xml"
@@ -400,7 +395,3 @@
           "{http://www.springframework.org/schema/p}id": "OidcFileResolver1"
           "{http://www.springframework.org/schema/p}remoteJwkSetCache-ref": "shibboleth.oidc.RemoteJwkSetCache"
           "{http://www.springframework.org/schema/c}metadata": "%{idp.home}/metadata/oidc-client.json"
-
-#- name: Configurable | OIDC | subtask | oidcupdaterps
-#  include: shibbolethidp_oidcupdaterps.yml
-

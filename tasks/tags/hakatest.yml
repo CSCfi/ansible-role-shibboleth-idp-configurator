@@ -33,3 +33,15 @@
                 "{http://www.w3.org/2001/XMLSchema-instance}type": EntityRoleWhiteList
                 _:
                   - RetainedRole: md:SPSSODescriptor
+
+
+- name: Configure | {{ item }} | Del | MetadataProvider[@id="HTTPHakatestMetadataProvider"]/MetadataFilter < conf/metadata-providers.xml (Proxy)
+  xml:
+    file: "{{ shibbolethidp_idp_home }}/conf/metadata-providers.xml"
+    xpath: /x:MetadataProvider/x:MetadataProvider[@id="HTTPHakatestMetadata"]/x:MetadataFilter[@xsi:type="EntityRoleWhiteList"]
+    namespaces:
+      x: "urn:mace:shibboleth:2.0:metadata"
+      xsi:  "http://www.w3.org/2001/XMLSchema-instance"
+    state: absent
+  when: (confs is defined) and ('proxy' in confs)
+

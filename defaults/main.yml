@@ -1,6 +1,6 @@
 ---
 # defaults file for ansible-role-shibboleth-idp-configurator
-shibbolethidp_idp_home: "{{ inventory_dir }}/customized-shibboleth-idp"
+shibbolethidp_idp_home: "{{ playbook_dir }}/customized-shibboleth-idp"
 
 ### Install
 shibbolethidp_version: 4.0.0

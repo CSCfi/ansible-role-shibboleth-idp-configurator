@@ -101,19 +101,21 @@
 - name: Configure | {{ item }} | Del | bean[@id="authn/SAML"] < conf/authn/general-authn.xml
   xml:
     file: "{{ shibbolethidp_idp_home }}/conf/authn/general-authn.xml"
-    xpath: /x:beans/x:bean[@id="authn/SAML"]
+    xpath: /x:beans/util:list[@id="shibboleth.AvailableAuthenticationFlows"]/x:bean[@id="authn/SAML"]
     namespaces:
       x: "http://www.springframework.org/schema/beans"
+      util: "http://www.springframework.org/schema/util"
     state: absent
 
 - name: Configure | {{ item }} | Add | bean[@id="authn/SAML"] > conf/authn/general-authn.xml
   xml:
     file: "{{ shibbolethidp_idp_home }}/conf/authn/general-authn.xml"
-    xpath: /x:beans
+    xpath: /x:beans/util:list[@id="shibboleth.AvailableAuthenticationFlows"]
     pretty_print: yes
     namespaces:
       x: "http://www.springframework.org/schema/beans"
       p: "http://www.springframework.org/schema/p"
+      util: "http://www.springframework.org/schema/util"
     add_children:
       - bean:
           id: "authn/SAML"
