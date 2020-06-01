@@ -206,6 +206,12 @@
             - AttributeRule:
                 attributeID: eduPersonPrincipalName
                 permitAny: "true"
+            - AttributeRule:
+                attributeID: schacHomeOrganization
+                permitAny: "true"
+            - AttributeRule:
+                attributeID: schacHomeOrganizationType
+                permitAny: "true"
       - AttributeFilterPolicy:
           id: "testsp"
           _:
@@ -223,5 +229,11 @@
                 permitAny: "true"
             - AttributeRule:
                 attributeID: eduPersonPrincipalName
+                permitAny: "true"
+            - AttributeRule:
+                attributeID: schacHomeOrganization
+                permitAny: "true"
+            - AttributeRule:
+                attributeID: schacHomeOrganizationType
                 permitAny: "true"
 

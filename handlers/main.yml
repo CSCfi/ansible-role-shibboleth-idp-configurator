@@ -1,15 +1,18 @@
 # handlers file for shibboleth-idp
 - name: systemctl daemon-reload
   command: systemctl daemon-reload
+  when: (inventory_hostname != 'localhost')
 
 - name: restart shibboleth-idp
   service: name=shibboleth-idp state=restarted
+  when: (inventory_hostname != 'localhost')
 
 - name: rebuild shibboleth-idp
   shell: "source /etc/default/shibboleth-idp && {{ shibbolethidp_idp_home }}/bin/build.sh -Didp.target.dir={{ shibbolethidp_idp_home }}"
   args:
     executable: /bin/bash
   notify: restart shibboleth-idp
+  when: (inventory_hostname != 'localhost')
 
 - name: generate hashlinks
   shell: "make"
@@ -36,4 +39,6 @@
   shell: "source /etc/default/shibboleth-idp && {{ shibbolethidp_idp_home }}/bin/reload-service.sh -id shibboleth.ClientInformationResolverService"
   args:
     executable: /bin/bash
-  when: update is defined
+  when: 
+    - update is defined
+    - when: (inventory_hostname != 'localhost')
