@@ -95,13 +95,6 @@
     - "{{ shibbolethidp_jars }}"
   notify: reown shibboleth-idp
 
-- name: Main | Jetty | SSL | enable | tweak-ssl.xml
-  lineinfile:
-    dest: "{{ shibbolethidp_jetty_base }}/start.d/https.ini"
-    regexp: '^etc'
-    insertafter: '--module=https'
-    line: 'etc/tweak-ssl.xml'
-
 - name: Main | Symlink | create | logs
   file:
     src="{{ shibbolethidp_idp_home }}/logs"

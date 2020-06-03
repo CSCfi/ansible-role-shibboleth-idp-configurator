@@ -9,7 +9,7 @@ shibbolethidp_jetty_base: "{{ shibbolethidp_idp_home }}/jetty-base"
 shibbolethidp_wwwroot: "{{ shibbolethidp_jetty_base }}/webapps/root"
 shibbolethidp_jetty_home: /opt/jetty
 shibbolethidp_jetty_modules: ['server','https','http','deploy','annotations','resources','console-capture','requestlog','servlets','jsp','jstl','ext','plus','ssl','setuid','security']
-shibbolethidp_jetty_secure_port: 443
+shibbolethidp_jetty_ssl_port: 443
 shibbolethidp_entityid: https://{{ shibbolethidp_fqdn }}/idp/shibboleth
 shibbolethidp_scope: "{{ shibbolethidp_fqdn.split('.')[1:] | join('.') }}"
 shibbolethidp_root: dc={{ shibbolethidp_fqdn.split('.')[-2] }},dc={{ shibbolethidp_fqdn.split('.')[-1] }}
