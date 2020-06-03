@@ -4,7 +4,7 @@
   with_items:
     - { option: 'jetty.ssl.port', value: "{{ shibbolethidp_jetty_ssl_port }}", state: present }
     - { option: 'jetty.ssl.host', value: "0.0.0.0", state: present }
-    - { option: '--module', value: "ssl", state: present }
+#    - { option: '--module', value: "ssl", state: present }
   loop_control:
     loop_var: httpsitem
 
