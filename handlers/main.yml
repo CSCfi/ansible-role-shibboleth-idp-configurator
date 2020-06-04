@@ -33,12 +33,26 @@
   notify: rebuild shibboleth-idp
 
 - name: reown privatekeys-idp
-  include_tasks: tasks/shibbolethidp_certsownership.yml
+  acl:
+    path: "{{ handleritem.path }}"
+    entity: jetty
+    etype: user
+    permissions: r
+    state: present
+  with_items: 
+    - "{{ shibbolethidp_samlsig_path }}.key"
+    - "{{ shibbolethidp_samlenc_path }}.key"
+    - "{{ shibbolethidp_oidcsig_path }}.key"
+    - "{{ shibbolethidp_oidcenc_path }}.key"
+  loop_control:
+    loop_var: handleritem
+  notify: restart shibboleth-idp
+  when: 
+    - (inventory_hostname != 'localhost')
 
 - name: reload-service shibboleth-idp
   shell: "source /etc/default/shibboleth-idp && {{ shibbolethidp_idp_home }}/bin/reload-service.sh -id shibboleth.ClientInformationResolverService"
   args:
     executable: /bin/bash
   when: 
-    - update is defined
-    - when: (inventory_hostname != 'localhost')
+    - (inventory_hostname != 'localhost')

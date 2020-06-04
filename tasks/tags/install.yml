@@ -1,7 +1,5 @@
-
 ---
-# tasks file for shibboleth-idp
-- name: Install | Initialize | {{ shibbolethidp_fqdn }}
+- name: Configure | {{ item }} | {{ shibbolethidp_fqdn }}
   include_vars: "{{ install }}"
   with_first_found:
     - "{{ ansible_os_family }}.yml"
@@ -10,17 +8,17 @@
     loop_var: install
   when: shibbolethidp_packages is not defined
 
-- name: Install | Packages
+- name: Configure | {{ item }} | Packages
   package: name={{ shibbolethidp_packages }} state=installed
 
-- name: Install | Download | Shibboleth-IdP {{ shibbolethidp_version }}
+- name: Configure | {{ item }} | Download | Shibboleth-IdP {{ shibbolethidp_version }}
   unarchive:
     src: https://shibboleth.net/downloads/identity-provider/{{ shibbolethidp_version }}/shibboleth-identity-provider-{{ shibbolethidp_version }}.tar.gz
     dest: "{{ shibbolethidp_dst_dir }}"
     remote_src: True
   notify: reown shibboleth-idp
 
-- name: Main | Install
+- name: Configure | {{ item }} | Shibboleth-IdP {{ shibbolethidp_version }}
   shell: "source /etc/default/shibboleth-idp && {{ shibbolethidp_dst_dir }}/shibboleth-identity-provider-{{ shibbolethidp_version }}/bin/install.sh \
   -Didp.src.dir={{ shibbolethidp_dst_dir }}/shibboleth-identity-provider-{{ shibbolethidp_version }} \
   -Didp.target.dir={{ shibbolethidp_idp_home }} \
@@ -35,7 +33,7 @@
     executable: /bin/bash
     creates: "{{ shibbolethidp_idp_home }}/logs"
 
-- name: Install | Template | Directories | Create
+- name: Configure | {{ item }} | Create | Template | Directories
   file:
     state: directory
     dest: "/{{ item_templates.path }}"
@@ -44,7 +42,7 @@
   loop_control:
     loop_var: item_templates
 
-- name: Install | Template | Files | copy
+- name: Configure | {{ item }} | Copy | Template | Files
   template:
     src: "{{ item_templates.src }}"
     dest: "/{{ item_templates.path }}"
@@ -57,10 +55,10 @@
 
 - include_vars: "Extra.yml"
 
-- name: Main | jetty_base logs | directory | create
+- name: Configure | {{ item }} | Create | Jetty | Log | Dir
   file: path={{ shibbolethidp_jetty_base }}/logs state=directory mode=0755 owner=jetty group=jetty
 
-- name: Main | jetty_base | directories | create
+- name: Configure | {{ item }} | Create | Jetty | Base | Dir
   file: path={{ jars.dst }} state=directory owner=jetty group=jetty mode=0755
   with_items:
     - "{{ jetty_jars }}"
@@ -69,23 +67,23 @@
     loop_var: jars
   notify: reown shibboleth-idp
 
-- name: Main | jetty_base | create | system.d
+- name: Configure | {{ item }} | Create | Jetty | system.d 
   shell: . /etc/default/shibboleth-idp && java -jar $JETTY_HOME/start.jar --create-startd
   args:
     chdir: "{{ shibbolethidp_jetty_base }}"
     creates: "{{ shibbolethidp_jetty_base }}/start.d"
 
-- name: Main | jetty_base | configure | modules | {{ shibbolethidp_jetty_modules }}
+- name: Configure | {{ item }} | Init | Jetty | Base | {{ shibbolethidp_jetty_modules }}
   shell: . /etc/default/shibboleth-idp && java -jar $JETTY_HOME/start.jar --add-to-start="{{ shibbolethidp_jetty_modules | join(',') }}"
   args:
     chdir: "{{ shibbolethidp_jetty_base }}"
     creates: "{{ shibbolethidp_jetty_base }}/start.d/ssl.ini"
 
-- name: Main | Jetty | Configure
+- name: Configure | {{ item }} | Jetty | Configs
   lineinfile: dest={{ item.dst }} regexp="^#?\s*({{ item.name }}\s*=)" backrefs=yes  line="\\1 {{ item.value }}"
   with_items: "{{ jetty_configurator }}"
 
-- name: Main | download | Extra
+- name: Configure | {{ item }} | Jetty | Downlad | Extras
   get_url:
     url: "{{ item.url }}"
     dest: "{{ item.dst }}"
@@ -95,20 +93,20 @@
     - "{{ shibbolethidp_jars }}"
   notify: reown shibboleth-idp
 
-- name: Main | Symlink | create | logs
+- name: Configure | {{ item }} | Shibboleth-IdP | Symlink | Logs
   file:
     src="{{ shibbolethidp_idp_home }}/logs"
     dest=/var/log/shibboleth-idp
     state=link
 
-- name: Main | Symlink | create | logs
+- name: Configure | {{ item }} | Jetty | Symlink | Logs
   file:
     src="{{ shibbolethidp_idp_home }}/jetty-base/logs"
     dest=/var/log/jetty
     state=link
     force=yes
 
-- name: Main | Configure | authn/password-authn-config.xml | Username | Lowercase
+- name: Configure | {{ item }} | Shibboleth-IdP | authn/password-authn-config.xml | Username | Lowercase
   xml:
     xpath: "{{ item.xpath }}"
     attribute: "{{ item.attribute }}"
@@ -123,6 +121,7 @@
     - { xpath: "//util:constant[@id='shibboleth.authn.Password.Lowercase']", attribute: "static-field", value: "java.lang.Boolean.TRUE", ensure: present }
   notify: restart shibboleth-idp
 
+- name: Configure | {{ item }} | Shibboleth-IdP | enable | service
 - name: Main | Enable | Service | shibboleth-idp 
   service: name="{{ item }}" enabled=yes state=started
   with_items:
