@@ -56,6 +56,7 @@
     - ( shibbolethidp_ssl_cabundle != "not_set_yet" )
     - ( shibbolethidp_ssl_crt != "not_set_yet" )
     - ( shibbolethidp_ssl_key != "not_set_yet" )
+    - ( 'https' in confs )
 
 - name: "Configure | {{ item }} | Generate| {{ shibbolethidp_idp_home }}/credentials/ssl-keystore.jks"
   command: "keytool -importkeystore -srckeystore /tmp/ssl-keystore.p12 -srcstoretype PKCS12 -destkeystore {{ shibbolethidp_idp_home }}/credentials/ssl-keystore.jks -srcstorepass {{ shibbolethidp_keystore_password }} -deststorepass {{ shibbolethidp_keystore_password }} creates={{ shibbolethidp_idp_home }}/credentials/ssl-keystore.jks"
@@ -63,6 +64,7 @@
     - ( shibbolethidp_ssl_cabundle != "not_set_yet" )
     - ( shibbolethidp_ssl_crt != "not_set_yet" )
     - ( shibbolethidp_ssl_key != "not_set_yet" )
+    - ( 'https' in confs )
 
 - name: "Configure | {{ item  }} | Jetty | SSL | {{ shibbolethidp_idp_home }}/jetty-base/start.d/ssl.ini"
   lineinfile:
@@ -83,5 +85,6 @@
     - ( shibbolethidp_ssl_cabundle != "not_set_yet" )
     - ( shibbolethidp_ssl_crt != "not_set_yet" )
     - ( shibbolethidp_ssl_key != "not_set_yet" )
+    - ( 'https' in confs )
   notify:
     - restart shibboleth-idp
