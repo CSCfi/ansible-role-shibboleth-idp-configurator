@@ -31,6 +31,8 @@
   loop_control:
     loop_var: shibbolethidp_item
   notify: rebuild shibboleth-idp
+  when: 
+    - (inventory_hostname != 'localhost')
 
 - name: reown privatekeys-idp
   acl:
