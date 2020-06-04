@@ -68,7 +68,6 @@
     add_children:
       - "{http://www.springframework.org/schema/util}list":
           id: "{{ proxyitem }}"
-          "{http://www.w3.org/2001/XMLSchema-instance}type": Subject
           _:
             - value: proxy-eppn
   loop_control:
