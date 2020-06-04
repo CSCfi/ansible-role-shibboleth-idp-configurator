@@ -122,7 +122,6 @@
   notify: restart shibboleth-idp
 
 - name: Configure | {{ item }} | Shibboleth-IdP | enable | service
-- name: Main | Enable | Service | shibboleth-idp 
   service: name="{{ item }}" enabled=yes state=started
   with_items:
     - shibboleth-idp

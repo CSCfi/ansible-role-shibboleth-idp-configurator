@@ -39,10 +39,10 @@
     regexp: "{{ certitem.regexp }}"
     line: "{{ certitem.line }}"
   with_items:
-    - { regexp:  '#?idp\.signing\.key=', line: 'idp.signing.key= {{ shibbolethidp_samlsig_path | basename }}.key' }
-    - { regexp:  '#?idp\.signing\.cert=', line: 'idp.signing.cert= {{ shibbolethidp_samlsig_path | basename }}.crt' }
-    - { regexp:  '#?idp\.encryption\.key=', line: 'idp.encryption.key= {{ shibbolethidp_samlenc_path | basename }}.key' }
-    - { regexp:  '#?idp\.encryption\.cert=', line: 'idp.encryption.cert= {{ shibbolethidp_samlenc_path | basename }}.crt' }
+    - { regexp:  '#?idp\.signing\.key=', line: 'idp.signing.key= {{ shibbolethidp_samlsig_path }}.key' }
+    - { regexp:  '#?idp\.signing\.cert=', line: 'idp.signing.cert= {{ shibbolethidp_samlsig_path }}.crt' }
+    - { regexp:  '#?idp\.encryption\.key=', line: 'idp.encryption.key= {{ shibbolethidp_samlenc_path }}.key' }
+    - { regexp:  '#?idp\.encryption\.cert=', line: 'idp.encryption.cert= {{ shibbolethidp_samlenc_path }}.crt' }
   loop_control:
     loop_var: certitem
   when:
