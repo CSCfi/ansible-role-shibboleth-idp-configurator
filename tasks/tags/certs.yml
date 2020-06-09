@@ -33,22 +33,22 @@
     - { crt: "{{ shibbolethidp_oidcsig_crt }}", path: "{{ shibbolethidp_oidcsig_path }}" }
     - { crt: "{{ shibbolethidp_oidcenc_crt }}", path: "{{ shibbolethidp_oidcenc_path }}" }
 
-- name: Configure | {{ item }} | Certificates | idp.properties
-  lineinfile:
-    dest: "{{ shibbolethidp_idp_home }}/conf/idp.properties"
-    regexp: "{{ certitem.regexp }}"
-    line: "{{ certitem.line }}"
-  with_items:
-    - { regexp:  '#?idp\.signing\.key=', line: 'idp.signing.key= {{ shibbolethidp_samlsig_path }}.key' }
-    - { regexp:  '#?idp\.signing\.cert=', line: 'idp.signing.cert= {{ shibbolethidp_samlsig_path }}.crt' }
-    - { regexp:  '#?idp\.encryption\.key=', line: 'idp.encryption.key= {{ shibbolethidp_samlenc_path }}.key' }
-    - { regexp:  '#?idp\.encryption\.cert=', line: 'idp.encryption.cert= {{ shibbolethidp_samlenc_path }}.crt' }
-  loop_control:
-    loop_var: certitem
-  when:
-    - ( shibbolethidp_samlsig_crt != "not_set_yet" )
-    - ( shibbolethidp_samlsig_key != "not_set_yet" )
-  notify: restart shibboleth-idp
+#- name: Configure | {{ item }} | Certificates | idp.properties
+#  lineinfile:
+#    dest: "{{ shibbolethidp_idp_home }}/conf/idp.properties"
+#    regexp: "{{ certitem.regexp }}"
+#    line: "{{ certitem.line }}"
+#  with_items:
+#    - { regexp:  '#?idp\.signing\.key=', line: 'idp.signing.key= {{ shibbolethidp_samlsig_path }}.key' }
+#    - { regexp:  '#?idp\.signing\.cert=', line: 'idp.signing.cert= {{ shibbolethidp_samlsig_path }}.crt' }
+#    - { regexp:  '#?idp\.encryption\.key=', line: 'idp.encryption.key= {{ shibbolethidp_samlenc_path }}.key' }
+#    - { regexp:  '#?idp\.encryption\.cert=', line: 'idp.encryption.cert= {{ shibbolethidp_samlenc_path }}.crt' }
+#  loop_control:
+#    loop_var: certitem
+#  when:
+#    - ( shibbolethidp_samlsig_crt != "not_set_yet" )
+#    - ( shibbolethidp_samlsig_key != "not_set_yet" )
+#  notify: restart shibboleth-idp
 
 - name: Configure | {{ item }} | Generate | /tmp/ssl-keystore.p12
   command: "openssl pkcs12 -export -out /tmp/ssl-keystore.p12 -inkey {{ shibbolethidp_ssl_path }}.key -in {{ shibbolethidp_ssl_path }}.crt -certfile {{ shibbolethidp_ssl_path }}.cabundle.crt -name 'Server-Cert' -password 'pass:{{ shibbolethidp_keystore_password }}' creates=/tmp/ssl-keystore.p12"

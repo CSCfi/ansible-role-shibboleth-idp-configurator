@@ -3,12 +3,12 @@
 shibbolethidp_idp_home: "{{ playbook_dir }}/customized-shibboleth-idp"
 
 ### Install
-shibbolethidp_version: 4.0.0
+shibbolethidp_version: 4.0.1
 shibbolethidp_dst_dir: /opt
 shibbolethidp_jetty_base: "{{ shibbolethidp_idp_home }}/jetty-base"
 shibbolethidp_wwwroot: "{{ shibbolethidp_jetty_base }}/webapps/root"
 shibbolethidp_jetty_home: /opt/jetty
-shibbolethidp_jetty_modules: ['server','https','http','deploy','annotations','resources','console-capture','requestlog','servlets','jsp','jstl','ext','plus','ssl','setuid','security']
+shibbolethidp_jetty_modules: ['server','https','http','deploy','annotations','resources','console-capture','requestlog','servlets','jsp','jstl','ext','plus','setuid','security']
 shibbolethidp_jetty_ssl_port: 443
 shibbolethidp_entityid: https://{{ shibbolethidp_fqdn }}/idp/shibboleth
 shibbolethidp_scope: "{{ shibbolethidp_fqdn.split('.')[1:] | join('.') }}"
@@ -35,21 +35,21 @@ shibbolethidp_oidcplugin_version: 2.0.0
 ### Certs
 shibbolethidp_ssl_key: "{{ vault_ssl_key | default('not_set_yet') }}"
 shibbolethidp_ssl_crt: "{{ vault_ssl_crt | default('not_set_yet') }}"
-shibbolethidp_ssl_path: "%{idp.home}/credentials/{{ shibbolethidp_fqdn }}"
+shibbolethidp_ssl_path: "{{ shibbolethidp_idp_home }}/credentials/{{ shibbolethidp_fqdn }}"
 shibbolethidp_ssl_cabundle: "{{ vault_ssl_cabundle | default('not_set_yet') }}"
 
 shibbolethidp_samlsig_crt: "{{ vault_samlsig_crt | default('not_set_yet') }}"
 shibbolethidp_samlsig_key: "{{ vault_samlsig_key | default('not_set_yet') }}"
-shibbolethidp_samlsig_path: "%{idp.home}/credentials/idp-signing"
+shibbolethidp_samlsig_path: "{{ shibbolethidp_idp_home }}/credentials/idp-signing"
 
 shibbolethidp_samlenc_crt: "{{ vault_samlenc_crt | default(shibbolethidp_samlsig_crt) }}"
 shibbolethidp_samlenc_key: "{{ vault_samlenc_key | default(shibbolethidp_samlsig_key) }}"
-shibbolethidp_samlenc_path: "%{idp.home}/credentials/idp-encryption"
+shibbolethidp_samlenc_path: "{{ shibbolethidp_idp_home }}/credentials/idp-encryption"
 
 shibbolethidp_oidcsig_crt: "{{ vault_oidcsig_crt | default(shibbolethidp_samlsig_crt) }}"
 shibbolethidp_oidcsig_key: "{{ vault_odicsig_key | default(shibbolethidp_samlsig_key) }}"
-shibbolethidp_oidcsig_path: "%{idp.home}/credentials/idp-signing" 
+shibbolethidp_oidcsig_path: "{{ shibbolethidp_idp_home }}/credentials/idp-signing" 
 
 shibbolethidp_oidcenc_crt: "{{ vault_oidcenc_crt | default(shibbolethidp_oidcsig_crt) }}"
 shibbolethidp_oidcenc_key: "{{ vault_oidcenc_key | default(shibbolethidp_oidcsig_key) }}"
-shibbolethidp_oidcenc_path: "%{idp.home}/credentials/idp-encryption"
+shibbolethidp_oidcenc_path: "{{ shibbolethidp_idp_home }}/credentials/idp-encryption"
