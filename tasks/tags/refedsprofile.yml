@@ -35,7 +35,7 @@
           "{http://www.springframework.org/schema/p}forcedAuthenticationSupported": "true"
           _: 
             - property:
-                name: supportedPricipals
+                name: supportedPrincipals
                 _:
                   - list:
                       _:
