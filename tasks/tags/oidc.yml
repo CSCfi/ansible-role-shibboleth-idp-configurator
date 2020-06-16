@@ -1,4 +1,4 @@
-- name: Configure | {{ item }} | Download | Plugin v{{ shibbolethidp_oidcplugin_version }}
+- name: Configure | {{ item }} | Download | Plugin v{{ shibbolethidp_oidcplugin_version }}
   unarchive:
     extra_opts: ['--strip-components=1']
     src: "https://shibboleth.net/downloads/identity-provider/extensions/java-idp-oidc/{{ shibbolethidp_oidcplugin_version }}/idp-oidc-extension-distribution-{{ shibbolethidp_oidcplugin_version | regex_replace('[^0-9.]', '') }}-bin.tar.gz"
@@ -7,14 +7,14 @@
     creates: "{{ shibbolethidp_idp_home }}/edit-webapp/WEB-INF/lib/idp-oidc-extension-api-{{ shibbolethidp_oidcplugin_version | regex_replace('[^0-9.]', '') }}.jar"
   notify: reown shibboleth-idp
 
-- name: Configure | {{ item }} | Detect | Duplicate | Plugins
+- name: Configure | {{ item }} | Detect | Duplicate | Plugins
   find:
     paths: "{{ shibbolethidp_idp_home }}/edit-webapp/WEB-INF/lib"
     patterns: "^(?!.*({{ shibbolethidp_oidcplugin_version | regex_replace('[^0-9.]', '') }})).*oidc-extension"
     use_regex: true
   register: files_to_delete
 
-- name: Configure | {{ oidc }}  | Delete | Older | Plugins
+- name: Configure | {{ oidc }} | Delete | Older | Plugins
   file:
     path: "{{ shibbolethidp_item.path }}"
     state: absent
@@ -22,7 +22,7 @@
   loop_control:
     loop_var: shibbolethidp_item
 
-- name: Configure | {{ item }} | Configure | idp-oidc.properties
+- name: Configure | {{ item }} | Configure | idp-oidc.properties
   lineinfile: dest={{ shibbolethidp_idp_home }}/conf/idp-oidc.properties regexp="^#?\s*({{ item_oidc.option }}\s*=)" backrefs=yes line="\\1 {{ item_oidc.value }}"
   with_items:
     - { option: 'idp.oidc.issuer', value: "https://{{ shibbolethidp_fqdn }}", state: present }
@@ -82,7 +82,7 @@
   with_items:
     - { import: global-oidc.xml, file: global.xml, path: "/x:beans" }
 
-- name: Configurable | OIDC | Configure | idp.properties | (to include oidc-subject.properties and idp-oidc.properties) 
+- name: Configurable | {{ item }} | Configure | idp.properties | (to include oidc-subject.properties and idp-oidc.properties) 
   lineinfile:
     dest: "{{ shibbolethidp_idp_home }}/conf/idp.properties"
     regexp: ^(?!.*oidc)(idp.additionalProperties.*)$
@@ -122,7 +122,7 @@
     - '/x:beans/util:list[@id="shibboleth.oidc.SigningCredentials"]/x:ref[@bean="shibboleth.oidc.DefaultESSigningCredential"]'
     - '/x:beans/util:list[@id="shibboleth.oidc.EncryptionCredentials"]/x:ref[@bean="shibboleth.oidc.DefaultRSAEncryptionCredential"]'
 
-- name: Configure | {{ item }} | Add | bean[@id="shibboleth.oidc.PEMSigningCredential and Encryption"] > conf/credentials-oidc.xml
+- name: Configure | {{ item }} | Add | bean[@id="shibboleth.oidc.PEMSigningCredential and Encryption"] > conf/credentials-oidc.xml
   xml:
     file: "{{ shibbolethidp_idp_home }}/conf/credentials-oidc.xml"
     xpath: /x:beans/util:list
@@ -149,7 +149,7 @@
           "{http://www.springframework.org/schema/p}entityId-ref": "issuer" 
 
 
-- name: Configure | {{ item }} | Add | bean[@id="shibboleth.oidc.PEMSigningCredential"] > conf/credentials-oidc.xml
+- name: Configure | {{ item }} | Add | bean[@id="shibboleth.oidc.PEMSigningCredential"] > conf/credentials-oidc.xml
   xml:
     file: "{{ shibbolethidp_idp_home }}/conf/credentials-oidc.xml"
     xpath: /x:beans/util:list[@id="shibboleth.oidc.SigningCredentials"]
@@ -162,7 +162,7 @@
       - ref:
           bean: shibboleth.oidc.PEMSigningCredential
 
-- name: Configure | {{ item }} | Add | bean[@id="shibboleth.oidc.PEMEncryptionCredential"] > conf/credentials-oidc.xml
+- name: Configure | {{ item }} | Add | bean[@id="shibboleth.oidc.PEMEncryptionCredential"] > conf/credentials-oidc.xml
   xml:
     file: "{{ shibbolethidp_idp_home }}/conf/credentials-oidc.xml"
     xpath: /x:beans/util:list[@id="shibboleth.oidc.EncryptionCredentials"]
@@ -175,25 +175,25 @@
       - ref:
           bean: shibboleth.oidc.PEMEncryptionCredential
 
-- name: Configurable | OIDC | Create | Directory | .well-known
+- name: Configure | {{ item }} | Create | Directory | .well-known
   file: path={{ shibbolethidp_wwwroot }}/.well-known state=directory
 
 - name: Main | Template | Set | service_name 
   set_fact:
     service_name: "{{ shibbolethidp_fqdn }}"
 
-- name: Main | Template | Get | openid-configuration
+- name: Configure | {{ item }} | Get | openid-configuration
   fetch:
     src: "{{ shibbolethidp_idp_home }}/static/.well-known/openid-configuration"
     dest: "/tmp/openid-configuration.j2"
     flat: yes
   
-- name: Main | Template | push | openid-configuration
+- name: Configure | {{ item }} | Put | openid-configuration
   template:
     src: "/tmp/openid-configuration.j2"
     dest: "{{ shibbolethidp_wwwroot }}/.well-known/openid-configuration"
 
-- name: Configure| {{ item }} | Mod | relaying-party.xml | enable oidc profile
+- name: Configure | {{ item }} | Mod | relaying-party.xml | enable oidc profile
   xml:
     xpath: "//x:bean[@id='shibboleth.DefaultRelyingParty']"
     attribute: "p:responderIdLookupStrategy-ref"
@@ -206,7 +206,7 @@
   notify: restart shibboleth-idp
 
 
-- name: Configurable | OIDC | Remove | shibboleth.UnverifiedRelyingParty | relying-party.xml
+- name: Configurable | {{ item }} | Del | shibboleth.UnverifiedRelyingParty < conf/relying-party.xml
   xml:
     xpath: "{{ oidcitem }}"
     ensure: "absent"
@@ -222,7 +222,7 @@
     - '/x:beans/x:bean[@id="shibboleth.DefaultRelyingParty"]/x:property[@name="profileConfigurations"]/x:list/x:bean[@parent="OAUTH2.Revocation"]'
   notify: restart shibboleth-idp
 
-- name: Configure | {{ item }} | Add | AttributeDefinition[@id="subject"] > conf/attribute-resolver.xml
+- name: Configure | {{ item }} | Add | AttributeDefinition[@id="subject"] > conf/attribute-resolver.xml
   xml:
     file: "{{ shibbolethidp_idp_home }}/conf/relying-party.xml"
     xpath: /x:beans/x:bean[@id="shibboleth.DefaultRelyingParty"]/x:property[@name="profileConfigurations"]/x:list/x:ref[@bean="Liberty.SSOS"]
@@ -242,7 +242,7 @@
       - bean:
           parent: "OAUTH2.Revocation"
 
-- name: Configure | {{ item }} | Add | AttributeDefinition[@id="subject"] > conf/attribute-resolver.xml
+- name: Configure | {{ item }} | Add | AttributeDefinition[@id="subject"] > conf/attribute-resolver.xml
   xml:
     file: "{{ shibbolethidp_idp_home }}/conf/relying-party.xml"
     xpath: /x:beans/x:bean[@id="shibboleth.DefaultRelyingParty"]
@@ -267,7 +267,7 @@
                             - bean:
                                 parent: OIDC.Keyset
 
-- name: Configure | {{ item }} | Del | AttributeDefinition & DataConnector] < conf/attribute-resolver.xml
+- name: Configure | {{ item }} | Del | AttributeDefinition & DataConnector] < conf/attribute-resolver.xml
   xml:
     file: "{{ shibbolethidp_idp_home }}/conf/attribute-resolver.xml"
     xpath: "{{ oidcitem }}"
@@ -280,7 +280,7 @@
     - '/x:AttributeResolver/x:AttributeDefinition[@id="subject"]'
     - '/x:AttributeResolver/x:DataConnector[@id="computedSubjectId"]'
 
-- name: Configure | {{ item }} | Add | AttributeDefinition[@id="subject"] > conf/attribute-resolver.xml
+- name: Configure | {{ item }} | Add | AttributeDefinition[@id="subject"] > conf/attribute-resolver.xml
   xml:
     file: "{{ shibbolethidp_idp_home }}/conf/attribute-resolver.xml"
     xpath: /x:AttributeResolver/x:AttributeDefinition
@@ -302,7 +302,7 @@
                 "{http://www.w3.org/2001/XMLSchema-instance}type": "oidcext:OIDCString"
                 name: sub
 
-- name: Configure | {{ item }} | Add | DataConnector[@id="computedSubjectId"] > conf/attribute-resolver.xml
+- name: Configure | {{ item }} | Add | DataConnector[@id="computedSubjectId"] > conf/attribute-resolver.xml
   xml:
     file: "{{ shibbolethidp_idp_home }}/conf/attribute-resolver.xml"
     xpath: /x:AttributeResolver/x:DataConnector
@@ -323,7 +323,7 @@
             - InputAttributeDefinition:
                 ref: "%{idp.oidc.subject.sourceAttribute}"
 
-- name: Configure | {{ item }} | Del | AttributeFilterPolicy[@id="OPENID_SCOPE"] < conf/attribute-filter.xml
+- name: Configure | {{ item }} | Del | AttributeFilterPolicy[@id="OPENID_SCOPE"] < conf/attribute-filter.xml
   xml:
     file: "{{ shibbolethidp_idp_home }}/conf/attribute-filter.xml"
     xpath: /x:AttributeFilterPolicyGroup/x:AttributeFilterPolicy[@id="OPENID_SCOPE"]
@@ -331,7 +331,7 @@
     namespaces:
       x: "urn:mace:shibboleth:2.0:afp"
 
-- name: Configure | {{ item }} | Add | AttributeFilterPolicy[@id="OPENID_SCOPE"] > conf/attribute-filter.xml
+- name: Configure | {{ item }} | Add | AttributeFilterPolicy[@id="OPENID_SCOPE"] > conf/attribute-filter.xml
   xml:
     file: "{{ shibbolethidp_idp_home }}/conf/attribute-filter.xml"
     xpath: /x:AttributeFilterPolicyGroup

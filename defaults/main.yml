@@ -1,14 +1,16 @@
 ---
 # defaults file for ansible-role-shibboleth-idp-configurator
+shibbolethidp_fqdn: "{{ ansible_fqdn }}"
 shibbolethidp_idp_home: "{{ playbook_dir }}/customized-shibboleth-idp"
 
 ### Install
 shibbolethidp_version: 4.0.1
+jetty_version: 9.4.29.v20200521
 shibbolethidp_dst_dir: /opt
 shibbolethidp_jetty_base: "{{ shibbolethidp_idp_home }}/jetty-base"
 shibbolethidp_wwwroot: "{{ shibbolethidp_jetty_base }}/webapps/root"
 shibbolethidp_jetty_home: /opt/jetty
-shibbolethidp_jetty_modules: ['server','https','http','deploy','annotations','resources','console-capture','requestlog','servlets','jsp','jstl','ext','plus','setuid','security']
+shibbolethidp_jetty_modules: ['server','ssl', 'https','http','deploy','annotations','resources','console-capture','requestlog','servlets','jsp','jstl','ext','plus','setuid','security']
 shibbolethidp_jetty_ssl_port: 443
 shibbolethidp_entityid: https://{{ shibbolethidp_fqdn }}/idp/shibboleth
 shibbolethidp_scope: "{{ shibbolethidp_fqdn.split('.')[1:] | join('.') }}"
@@ -17,17 +19,33 @@ shibbolethidp_keystore_password: "{{ vault_keystore_password | default('idpkstor
 
 ### Edugain
 shibbolethidp_edugaincrt: "https://wiki.eduuni.fi/download/attachments/27297747/haka-edugain-sign.csc.fi.2017.pem"
+shibbolethidp_edugainmd_url: "https://haka.funet.fi/edugain-nightly/gen-edugain/idp-FILL-metadata-eduGain.xml"
 ### Haka-test
 shibbolethidp_hakatestcrt: "https://wiki.eduuni.fi/download/attachments/27297785/haka_testi_2018_sha2.crt"
 ### Haka
 shibbolethidp_hakacrt: "https://wiki.eduuni.fi/download/attachments/27297775/haka-sign-v4.pem"
 
-### nameid & Database
-shibbolethidp_dbuser: "{{ vault_shibbolethidp_dbuser | default('idp') }}"
-shibbolethidp_dbpassword: "{{ vault_shibbolethidp_dbpassword | default('not_set_yet') }}"
-shibbolethidp_dbhost: "{{ vault_shibbolethidp_dbhost | default('localhost') }}"
-shibbolethidp_dbport: "{{ vault_shibbolethidp_dbport | default('3306') }}"
-shibbolethidp_dbname: "{{ vault_shibbolethidp_dbname | default('idp') }}"
+### NameID
+shibbolethidp_persistentid_sourceattribute: uid
+shibbolethidp_persistentid_salt: this_should_be_ch4ng3d
+shibbolethidp_persistentid_datasource: shibboleth.JPAStorageService.DataSource
+
+### Database
+shibbolethidp_dbuser: "{{ vault_shibbolethidp_dbuser | default('idp') }}"
+shibbolethidp_dbpassword: "{{ vault_shibbolethidp_dbpassword | default('not_set_yet') }}"
+shibbolethidp_dbhost: "{{ vault_shibbolethidp_dbhost | default('localhost') }}"
+shibbolethidp_dbport: "{{ vault_shibbolethidp_dbport | default('3306') }}"
+shibbolethidp_dbname: "{{ vault_shibbolethidp_dbname | default('idp') }}"
+
+### ldap
+shibbolethidp_ldapuser: "{{ dirsrv_rootdn | default('cn=Directory Manager') }}"
+shibbolethidp_ldappassword: "{{ dirsrv_password | default('not_set_yet') }}"
+shibbolethidp_ldapsuffix: "{{ dirsrv_suffix | default(shibbolethidp_root) }}"
+shibbolethidp_ldapurl: "ldap://localhost:389"
+shibbolethidp_ldapbasedn: "ou=People,{{ shibbolethidp_ldapsuffix }}"
+shibbolethidp_ldapsearchfilter: "(uid=$resolutionContext.principal)"
+shibbolethidp_ldapuserfilter: "(uid={user})"
+shibbolethidp_ldapsubtreesearch: False
 
 ### OIDC
 shibbolethidp_oidcplugin_version: 2.0.0

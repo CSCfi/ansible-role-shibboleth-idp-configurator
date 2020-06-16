@@ -1,5 +1,5 @@
 ---
-- name: Configure | {{ item }} | {{ shibbolethidp_fqdn }}
+- name: Configure | {{ item }} | {{ shibbolethidp_fqdn }}
   include_vars: "{{ install }}"
   with_first_found:
     - "{{ ansible_os_family }}.yml"
@@ -8,17 +8,21 @@
     loop_var: install
   when: shibbolethidp_packages is not defined
 
-- name: Configure | {{ item }} | Packages
+- name: Configure | {{ item }} | Packages
   package: name={{ shibbolethidp_packages }} state=installed
 
-- name: Configure | {{ item }} | Download | Shibboleth-IdP {{ shibbolethidp_version }}
+- name: Configure | {{ item }} | Download | Shibboleth-IdP {{ shibbolethidp_version }}
   unarchive:
     src: https://shibboleth.net/downloads/identity-provider/{{ shibbolethidp_version }}/shibboleth-identity-provider-{{ shibbolethidp_version }}.tar.gz
     dest: "{{ shibbolethidp_dst_dir }}"
     remote_src: True
   notify: reown shibboleth-idp
 
-- name: Configure | {{ item }} | Shibboleth-IdP {{ shibbolethidp_version }}
+- template:
+    src: templates/etc/default/shibboleth-idp
+    dest: /etc/default/shibboleth-idp
+
+- name: Configure | {{ item }} | Shibboleth-IdP {{ shibbolethidp_version }}
   shell: "source /etc/default/shibboleth-idp && {{ shibbolethidp_dst_dir }}/shibboleth-identity-provider-{{ shibbolethidp_version }}/bin/install.sh \
   -Didp.src.dir={{ shibbolethidp_dst_dir }}/shibboleth-identity-provider-{{ shibbolethidp_version }} \
   -Didp.target.dir={{ shibbolethidp_idp_home }} \
@@ -33,7 +37,7 @@
     executable: /bin/bash
     creates: "{{ shibbolethidp_idp_home }}/logs"
 
-- name: Configure | {{ item }} | Create | Template | Directories
+- name: Configure | {{ item }} | Create | Template | Directories
   file:
     state: directory
     dest: "/{{ item_templates.path }}"
@@ -120,6 +124,35 @@
   with_items:
     - { xpath: "//util:constant[@id='shibboleth.authn.Password.Lowercase']", attribute: "static-field", value: "java.lang.Boolean.TRUE", ensure: present }
   notify: restart shibboleth-idp
+
+- name: Configure | {{ item }} | Del | import files
+  xml:
+    file: "{{ shibbolethidp_idp_home }}/conf/{{ item.file }}"
+    xpath: /x:beans/x:import[@resource="{{ item.import }}"]
+    namespaces:
+      x: "http://www.springframework.org/schema/beans"
+    state: absent
+  loop_control:
+    loop_var: item
+  with_items:
+    - { import: "schac.xml", file: "attributes/default-rules.xml" }
+    - { import: "funetEduPerson.xml", file: "attributes/default-rules.xml" }
+
+- name: Configure | {{ item }} | Add | attribute registry
+  xml:
+    file: "{{ shibbolethidp_idp_home }}/conf/{{ item.file }}"
+    xpath: "/x:beans"
+    pretty_print: yes
+    namespaces:
+      x: "http://www.springframework.org/schema/beans"
+    add_children:
+      - import:
+          resource: "{{ item.import }}"
+  loop_control:
+    loop_var: item
+  with_items:
+    - { import: "schac.xml", file: "attributes/default-rules.xml" }
+    - { import: "funetEduPerson.xml", file: "attributes/default-rules.xml" }
 
 - name: Configure | {{ item }} | Shibboleth-IdP | enable | service
   service: name="{{ item }}" enabled=yes state=started
