@@ -40,7 +40,7 @@
     attribute: "{{ item_haka.attribute }}"
     value: "{{ item_haka.value }}"
     ensure: "{{ item_haka.ensure }}"
-    file: /opt/shibboleth-idp/conf/relying-party.xml
+    file: "{{ shibbolethidp_idp_home }}/conf/relying-party.xml"
     namespaces:
       x: http://www.springframework.org/schema/beans
       p: http://www.springframework.org/schema/p
