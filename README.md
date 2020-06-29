@@ -16,17 +16,17 @@ Requirements
 Role Variables
 --------------
 
-This role can be called with multiple tags, where each tags means some dedicated configuration. Each configuration is own separate task file which makes it's easier follow what each configuration needs to do. Defaults and configurable variables for each tasks can be found from defaults/main.yml
+This role can be called with multiple 'confs' variables, where each variable means some dedicated configuration item. Each configuration item is it's own separate task file which makes it's easier follow what each configuration does. Defaults and configurable variables for each item can be found from defaults/main.yml
+* Tags:
+  * haka: Add trust to Haka federation
+    * shibbolethidp_hakacrt:
+  * edugain: Add trust to Edugain
+    * shibbolethidp_edugaincrt:
+  * hakatest Add trust to Haka-test federation
+    * shibbolethidp_hakatestcrt:
+  * oidc: Configure oidc support
 
-* tag_haka: Add trust to Haka federation
-  * shibbolethidp_hakacrt:
-* tag_edugain: Add trust to Edugain
-  * shibbolethidp_edugaincrt: 
-* tag_hakatest Add trust to Haka-test federation
-  * shibbolethidp_hakatestcrt:
-* tag_oidc: Configure oidc support
-
-If you want to overwrite default variables you can do it by overwriting those in the group_vars or in the playbook accordingly.
+If you want to overwrite default variables you can do it by overwriting those in the group_vars / inventory or in the playbook accordingly.
 
 Dependencies
 ------------
