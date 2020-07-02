@@ -116,7 +116,7 @@
     attribute: "{{ item.attribute }}"
     value: "{{ item.value }}"
     ensure: "{{ item.ensure }}"
-    file: /opt/shibboleth-idp/conf/authn/password-authn-config.xml
+    file: "{{ shibbolethidp_idp_home }}/conf/authn/password-authn-config.xml"
     namespaces:
       x: http://www.springframework.org/schema/beans
       p: http://www.springframework.org/schema/p
