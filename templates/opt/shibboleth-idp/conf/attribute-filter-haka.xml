@@ -12,9 +12,6 @@
          <Rule xsi:type="InEntityGroup" groupID="CSC testipalvelut" />
        </PolicyRequirementRule>
 
-      <AttributeRule attributeID="eduPersonTargetedID">
-        <PermitValueRule xsi:type="AttributeInMetadata" onlyIfRequired="false"/>
-      </AttributeRule>
       <AttributeRule attributeID="eduPersonAssurance">
         <PermitValueRule xsi:type="AttributeInMetadata" onlyIfRequired="false"/>
       </AttributeRule>
