@@ -1,4 +1,3 @@
-
 <?xml version="1.0" encoding="UTF-8"?>
 <AttributeFilterPolicyGroup id="haka-onlyifrequired"
     xmlns="urn:mace:shibboleth:2.0:afp"
@@ -12,9 +11,6 @@
          <Rule xsi:type="InEntityGroup" groupID="CSC testipalvelut" />
        </PolicyRequirementRule>
 
-      <AttributeRule attributeID="eduPersonTargetedID">
-        <PermitValueRule xsi:type="AttributeInMetadata" onlyIfRequired="false"/>
-      </AttributeRule>
       <AttributeRule attributeID="eduPersonAssurance">
         <PermitValueRule xsi:type="AttributeInMetadata" onlyIfRequired="false"/>
       </AttributeRule>
