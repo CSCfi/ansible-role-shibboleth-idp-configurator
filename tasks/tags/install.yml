@@ -153,6 +153,7 @@
   with_items:
     - { import: "schac.xml", file: "attributes/default-rules.xml" }
     - { import: "funetEduPerson.xml", file: "attributes/default-rules.xml" }
+    - { import: "finnishpublicsector.xml", file: "attributes/default-rules.xml" }
 
 - name: Configure | {{ item }} | Shibboleth-IdP | enable | service
   service: name="{{ item }}" enabled=yes state=started
