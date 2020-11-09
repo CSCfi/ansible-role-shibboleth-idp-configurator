@@ -50,6 +50,10 @@ shibbolethidp_ldapsubtreesearch: False
 ### OIDC
 shibbolethidp_oidcplugin_version: 2.0.0
 
+### OIDC Device flow
+shibbolethidp_oidcdeviceflow_version: 2.0.1
+shibbolethidp_oidcdeviceflow_location: 'https://github.com/CSCfi/shibboleth-idp-oauth2-deviceflow-extension'
+
 ### Certs
 shibbolethidp_ssl_key: "{{ vault_ssl_key | default('not_set_yet') }}"
 shibbolethidp_ssl_crt: "{{ vault_ssl_crt | default('not_set_yet') }}"
